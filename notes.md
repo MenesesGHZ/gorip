@@ -1,24 +1,26 @@
 # Facebook login
 
 `
-POST /login/?privacy_mutation_token=eyJ0eXBlIjowLCJjcmVhdGlvbl90aW1lIjoxNjA5NjY5ODUxLCJjYWxsc2l0ZV9pZCI6MzgxMjI5MDc5NTc1OTQ2fQ%3D%3D HTTP/1.1
-Host: www.facebook.com
+POST /login/device-based/regular/login/ HTTP/1.1
+Host: mbasic.facebook.com
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+Accept: */*;
 Accept-Language: en-US,en;q=0.5
 Accept-Encoding: gzip, deflate
-Referer: https://www.facebook.com/
 Content-Type: application/x-www-form-urlencoded
-Content-Length: 321
-Origin: https://www.facebook.com
+Content-Length: 187
+Origin: https://mbasic.facebook.com
 Connection: close
-Cookie: fr=123LZQ8aVPeFJDeci.AWUyLDKFao8XowhKquRSbsschV0.Bf8YMO.6P.AAA.0.0.Bf8Zzb.AWUclJLNix8; sb=DoPxX9e3gacWieXay1gIPwzM; datr=DoPxX-wEhsyAtYDGcSnMs3cG; wd=950x943; locale=es_LA
+Cookie: sb=DoPxX9e3gacWieXay1gIPwzM; datr=DoPxX-wEhsyAtYDGcSnMs3cG;
 Upgrade-Insecure-Requests: 1
 
-jazoest=21016&lsd=AVoOnjXjMcY&email=ghzant.y%40gmail.com&login_source=comet_headerless_login&next=&encpass=%23PWD_BROWSER%3A5%3A1609669868%3AAc5QAGmBEee2U0sxs1231V1B1FnzCHQ854wuVIRDHsCf80duIvvtW0cKy%2FFdcbBXkRk%2BLQoFkjXiR4x%2BZqJ11R5DsJ7ELuOzXY%2FDZDy7L1YFrmbIlPj6Tt5w7inlKe%2FuA63s%2BD%2FH%2B0ucCH3BVdKFkdkpFuaYGA%3D%3D
+lsd=AVpJfDk-quE&jazoest=2958&m_ts=1609786134&li=FmPzX868_5Lji6O7tYWN6B8-&try_number=0&unrecognized_tries=0&email=ghzant.y%40gmail.com&pass=password%28password%29&login=Iniciar+sesi%C3%B3n
 `
+
 * Enter email: ghzant.y@gmail.com -> ghzant.y@40gmail.com
-* Enter password: password(password) -> password%28password%29password -> (encoded password)
+* Enter password: password(password) -> password%28password%29password
+* sb
+* datr
 
 ### cookie/consent/
 * fr=123LZQ8aVPeFJDeci.AWWS0hTNq7xcYuNyPYBifuuU1aY.Bf8YMO.6P.AAA.0.0.Bf8Z25.AWXDJ1eMQgQ;
