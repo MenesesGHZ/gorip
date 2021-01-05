@@ -1,6 +1,8 @@
 {
-	"type":"module",
+	"type": "module",
 	"dependencies": {
-		"got": "^11.8.1"
+		"axios": "^0.21.1",
+		"follow-redirects": "^1.13.1",
+		"tough-cookie": "^4.0.0"
 	}
 }
