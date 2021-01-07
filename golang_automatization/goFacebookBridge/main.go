@@ -17,9 +17,9 @@ func main(){
 	userBreach.Sense(URL_struct)
 	fmt.Println("User Sensed:",userBreach)
 
-//	
-//		//Defining URL
-//	URL_struct,_ := url.Parse(URL_struct.String()+"login/device-based/regular/login/")
-//	facebookbreach.rip
+	
+		//Defining URL
+	URL_struct,_ = url.Parse(URL_struct.String()+"login/device-based/regular/login/")
+	userBreach.Rip(URL_struct)
 }
 
