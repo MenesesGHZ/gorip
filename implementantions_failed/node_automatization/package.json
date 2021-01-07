@@ -3,6 +3,7 @@
 	"dependencies": {
 		"axios": "^0.21.1",
 		"follow-redirects": "^1.13.1",
+		"jsdom": "^16.4.0",
 		"tough-cookie": "^4.0.0"
 	}
 }
