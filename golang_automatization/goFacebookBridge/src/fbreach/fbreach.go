@@ -16,17 +16,6 @@ type UserBreach struct{
 	cookies []*http.Cookie
 }
 
-
-
-
-var CookieNames = []string{
-	"datr",
-	"sb",
-	"c_user",
-	"xs",
-	"fr",
-}
-
 func CreateUser(email string, pass string) UserBreach{
 	parameters := make(map[string]string)
 	parameters["email"] = email
@@ -37,12 +26,13 @@ func CreateUser(email string, pass string) UserBreach{
 
 
 func (u *UserBreach) Sense(URL_struct *url.URL)  {
+	// Making GET request for https://mbasic.facebook.com/
 	response, err := http.Get(URL_struct.String())
 	if err!=nil{
 		fmt.Println(err)
 	}
 	
-	//Getting cookies
+	//Getting cookies & saving them to user
 	var cookies []*http.Cookie
 	for _,cookie := range response.Cookies() {
 		if includes(CookieNames,cookie.Name){
@@ -50,33 +40,25 @@ func (u *UserBreach) Sense(URL_struct *url.URL)  {
 		}
 	}
 	u.cookies = cookies
-
-	//Getting parameters
-//	tkz := html.NewTokenizer(response.Body)
-//	for{
-//		tkd:=tkz.Next()
-//		if tkd == html.ErrorToken {
-//			return
-//		}
-//		fmt.Println("Token:",tkz.Token())
-//	}
-	doc,err := html.Parse(response.Body)
-
+	
+	//Parsing html returning an *html.Node. Searching params and adding them to user.
+	doc,_ := html.Parse(response.Body)
+	searchParameters(doc,u)
 }
 
 
-func (u *UserBreach) rip(URL_struct *url.URL){
+func (u *UserBreach) Rip(URL_struct *url.URL){
 		// FACEBOOK LOGIN //
-
+	
 	//Adding cookies to URL
 	jar, _ := cookiejar.New(nil)
 	jar.SetCookies(URL_struct, u.cookies)
 
 	// Setting parameters and econding them
 	parameters := url.Values{}
-	parameters.Set("email", u.parameters["email"])
-	parameters.Set("pass", u.parameters["pass"])
-	parameters.Set("lsd", "AVpJfDk-quE")
+	for _,param := range ParameterNames{
+		parameters.Set(param, u.parameters[param])
+	}
 	fmt.Println("Encoded Parameters:",parameters.Encode())
 	
 	// Making an HTTP Client and a New Request 
@@ -87,7 +69,7 @@ func (u *UserBreach) rip(URL_struct *url.URL){
 			},
 			Jar:jar,
 		}
-	request,_:= http.NewRequest(http.MethodPost,URL_struct.String(),strings.NewReader(parameters.Encode()))
+	request,_:= http.NewRequest("POST",URL_struct.String(),strings.NewReader(parameters.Encode()))
 	
 	//Adding cookies
 	for _,cookie := range u.cookies{
@@ -117,28 +99,58 @@ func (u *UserBreach) rip(URL_struct *url.URL){
 	fmt.Println("CookieJar:",jar.Cookies(request.URL))
 	fmt.Println("StatusCode:", response.StatusCode)
 	fmt.Println("Response Cookies",response.Cookies())
-	defer response.Body.Close()
 }
 
 
+// Extra Variables
+var ParameterNames = []string{
+	"lsd",
+	"jazoest",
+	"m_ts",
+	"li",
+	"try_number",
+	"unrecognized_tries",
+	"email",
+	"pass",
+	"login",
+}
+
+var CookieNames = []string{
+	"datr",
+	"sb",
+	"c_user",
+	"xs",
+	"fr",
+}
 
 
-// extra functions
-func searchParameters(node *html.Node){
+// Extra functions
+func searchParameters(node *html.Node, u *UserBreach){
+	// Declaration of functions
 	var engine func(*html.Node)
+	
+	// Defining functions
 	engine = func(n *html.Node) {
 		if n.Type == html.ElementNode && n.Data == "input" {
-			for _,attr := range 
-			fmt.Println("ATTR:",n.Attr)
-			fmt.Println("KEY:",n.Attr[1].Key)
-			fmt.Println("VALUE:",n.Attr[1].Val)
-			fmt.Println("NAMESPACE:",n.Attr[1].Namespace)
+			for _,attr := range n.Attr{
+				if includes(ParameterNames,attr.Val){
+					for _,attr2 := range n.Attr{
+						if attr2.Key == "value"{
+							u.parameters[attr.Val] = attr2.Val
+							break
+						}
+					}
+					break
+				}
+			}
 		}
 		for c := n.FirstChild; c != nil; c = c.NextSibling {
 			engine(c)
 		}
 	}
-	engine(doc)
+	
+	// Running engine
+	engine(node)
 }
 
 
