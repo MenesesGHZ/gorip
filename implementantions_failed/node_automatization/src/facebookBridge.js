@@ -10,7 +10,7 @@ const {CookieJar} = tough_cookie_pkg;
 const facebookBridge = {
 	login: async(email,pass,uid) => {
 		try{
-			const suffix = "/login/device-based/regular/login/?refsrc=https%3A%2F%2Fmbasic.facebook.com%2F&lwv=100&refid=8t";
+			const suffix = "/login/device-based/regular/login/";
 
 			//Preparing cookies
 			const cookieJar = new CookieJar(),
@@ -24,26 +24,36 @@ const facebookBridge = {
 				'lsd':'AVpJfDk-quE',
 				'email':email,
 				'pass':pass
-			}).toString();
+			});
 
 			//Injecting cookies and including user parameters
 			let headers = requestHeaders.POST;
-			headers["Content-Length"] = parameters.length; 
+			headers["Content-Length"] = parameters.toString().length; 
 			
 			//Defining config and making request
 			axios.defaults.withCredentials = true;
 			const config = {
-				baseURL:facebookBridge.prefixURL()+"/",
+				method:"POST",
+				baseURL:facebookBridge.prefixURL(),
+				url:suffix,
 				headers:headers,
 				maxRedirects:0,
 				validateStatus:(status)=>{
+					console.log("VALIDATING:",status)
 					return status>=200 && status <= 303;
 				},
+				transformRequest:[(data,headers)=>{
+					console.log("DATA:",data);
+					console.log("HEADERS:",headers);
+				}],
+				maxBodyLength: 100,
 			};
-			const response = await axios.post(suffix,parameters,config);
 			cookieJar.allowSpecialUseDomain = true;
 			cookieJar.enableLooseMode = true;
-			console.log(cookieJar)	
+			const instance = axios.create(config);
+			const response = await instance.request({data:parameters.toString()})
+			console.log(response.headers)	
+			console.log(response.status)	
 
 		}catch(error){
 			console.log(error)
