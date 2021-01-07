@@ -29,16 +29,23 @@ const facebookBridge = {
 			url:suffix,
 			headers:headers,
 			withCredentials:true,
-			validateStatus:(status)=>{
-				return status>=200 && status <= 303;
-			},
 			transformRequest:[(data,headers)=>{
 				return data;
 			}],
 		};
 		const instance = axios.create(config);
+		// Add a response interceptor
+		instance.interceptors.response.use(function (response) {
+			console.log(response.status)	
+			return response;
+		}, function (error) {
+			console.log("something")
+			// Any status codes that falls outside the range of 2xx cause this function to trigger
+			// Do something with response error
+			return Promise.reject(error);
+		});
+		
 		const response = await instance.request({data:parameters.toString()})
-		console.log(response.data)
 	},
 	makeReaction:(uid,reaction,url) => {
 
