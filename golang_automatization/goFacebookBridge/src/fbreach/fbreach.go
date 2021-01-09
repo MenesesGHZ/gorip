@@ -8,99 +8,160 @@ import(
     	"net/url"
 	"net/http"
 	"net/http/cookiejar"
+	"io/ioutil"
 )
 
 
 type UserBreach struct{
-	parameters map[string]string
-	cookies []*http.Cookie
+	Parameters map[string]string
+	Cookies []*http.Cookie
 }
 
 func CreateUser(email string, pass string) UserBreach{
 	parameters := make(map[string]string)
 	parameters["email"] = email
 	parameters["pass"] = pass
-	userBreach := UserBreach{parameters:parameters}
+	userBreach := UserBreach{Parameters:parameters}
 	return userBreach
 }
 
 
-func (u *UserBreach) Sense(URL_struct *url.URL)  {
+func (u *UserBreach) Sense()  {
 	// Making GET request for https://mbasic.facebook.com/
+	URL_struct,_ := url.Parse("https://mbasic.facebook.com/")
 	response, err := http.Get(URL_struct.String())
 	if err!=nil{
 		fmt.Println(err)
 	}
 	
 	//Getting cookies & saving them to user
-	var cookies []*http.Cookie
-	for _,cookie := range response.Cookies() {
-		if includes(CookieNames,cookie.Name){
-			cookies = append(cookies,cookie)
-		}
-	}
-	u.cookies = cookies
+	u.MergeCookies(response.Cookies())
 	
 	//Parsing html returning an *html.Node. Searching params and adding them to user.
+	defer response.Body.Close()
 	doc,_ := html.Parse(response.Body)
 	searchParameters(doc,u)
 }
 
 
-func (u *UserBreach) Rip(URL_struct *url.URL){
-		// FACEBOOK LOGIN //
+func (u *UserBreach) Rip(){
+	URL_struct,_ := url.Parse("https://mbasic.facebook.com/login/device-based/regular/login/")
 	
-	//Adding cookies to URL
-	jar, _ := cookiejar.New(nil)
-	jar.SetCookies(URL_struct, u.cookies)
+	//Ripping 	
+	loginRequest := u.ripPhase1(URL_struct)
+	response := u.ripPhase2(loginRequest)
+	
+	//printing stuff
+	fmt.Println("\n\n------------------------------------\n\n")
+	fmt.Println("HEADERS:\n",response.Header)
+	fmt.Println("\n\n------------------------------------\n\n")
+	fmt.Println("NATURAL RESPONSE:\n",response)
+}
 
-	// Setting parameters and econding them
-	parameters := url.Values{}
-	for _,param := range ParameterNames{
-		parameters.Set(param, u.parameters[param])
+
+func setHeaders(request *http.Request, contentType string, paramsLength int){
+	//Setting default headers
+	request.Header.Set("Host",request.URL.Host)
+	request.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0")
+	request.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+	request.Header.Set("Accept-Language", "en-US,en;q=0.5")
+	request.Header.Set("Accept-Encoding", "gzip, deflate")
+	request.Header.Set("Connection", "close")
+	request.Header.Set("Upgrade-Insecure-Requests", "1")
+
+	//Setting parameters if POST request
+	if request.Method == "POST"{
+		request.Header.Set("Content-Type",contentType)
+		request.Header.Set("Content-Length", strconv.Itoa(paramsLength))
+		request.Header.Set("Origin", request.URL.String())
 	}
-	fmt.Println("Encoded Parameters:",parameters.Encode())
+}
+
+func (u *UserBreach) ripPhase1(URL_struct *url.URL) *http.Request{
+	//Get user's parameters as url.Values type
+	parameters := u.GetParameters()
+
+	//Making request to URL with respective parameters & setting its headers
+	request,_:= http.NewRequest("POST",URL_struct.String(),strings.NewReader(parameters.Encode()))
+	setHeaders(request, "application/x-www-form-urlencoded;", len(parameters.Encode()))
 	
-	// Making an HTTP Client and a New Request 
+	//Injecting cookies and getting Jar to be passed to client
+	jar := u.GetAndInjectCookies(request)
+	
+	// Making an HTTP Client and a New Request  &  Saving cookies from  response with [StatusCode = 302]
+	var loginRequest *http.Request
 	client :=  &http.Client{
 			CheckRedirect: func(request *http.Request, via []*http.Request) error {
-				fmt.Println("REDIRECT:",request,via)
+				loginRequest = request
 				return http.ErrUseLastResponse
 			},
 			Jar:jar,
 		}
-	request,_:= http.NewRequest("POST",URL_struct.String(),strings.NewReader(parameters.Encode()))
+	//Doing POST request & getting a response with [StatusCode = 302]
+	response,_ := client.Do(request)
+	defer response.Body.Close()
 	
-	//Adding cookies
-	for _,cookie := range u.cookies{
-		request.AddCookie(cookie)
-	}
-	fmt.Println("Cookies:",request.Cookies())
-
-	//Adding Headers to Request
-	request.Header.Set("Host",URL_struct.Host)
-	request.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0")
-	request.Header.Set("Accept", "*/*")
-	request.Header.Set("Accept-Language", "en-US,en;q=0.5")
-	request.Header.Set("Accept-Encoding", "gzip, deflate")
-	request.Header.Set( "Content-Type", "application/x-www-form-urlencoded; param=value")
-	request.Header.Set( "Content-Length", strconv.Itoa(len(parameters.Encode())))
-	request.Header.Set( "Origin", URL_struct.String())
-	request.Header.Set( "Connection", "close")
-	request.Header.Set( "Upgrade-Insecure-Requests", "1")
+	//Merging response cookies to user
+	u.MergeCookies(response.Cookies())
 	
-	//Making POST request
-	fmt.Println("POST to:",URL_struct.String())
-	response,err := client.Do(request)
-
-	if err != nil {
-		fmt.Println("ERROR",err)
-	}
-	fmt.Println("CookieJar:",jar.Cookies(request.URL))
-	fmt.Println("StatusCode:", response.StatusCode)
-	fmt.Println("Response Cookies",response.Cookies())
+	//Printing status code
+	fmt.Printf("[ StatusCode = %d ]\n",response.StatusCode)
+	
+	return loginRequest
 }
 
+func (u *UserBreach) ripPhase2(loginRequest *http.Request) *http.Response{
+	//Injecting cookies
+	jar := u.GetAndInjectCookies(loginRequest)
+	
+	//Making http client
+	client :=  &http.Client{Jar:jar}
+
+	//Doing POST request & getting a response with [StatusCode = 200]
+	response,_ := client.Do(loginRequest)
+	defer response.Body.Close()
+	
+	//Printing status code [ StatusCode = 200 ]
+	fmt.Printf("[ StatusCode = %d ]\n",response.StatusCode)
+
+	body,err := ioutil.ReadAll(response.Body)
+	if err != nil{
+		fmt.Println("BODY ERROR:",err)
+	}
+	fmt.Println("BODY:",string(body))
+
+
+	return response
+}
+
+func(u *UserBreach) GetParameters() url.Values{
+	// Setting user's parameters 
+	parameters := url.Values{}
+	for _,param := range ParameterNames{
+		parameters.Set(param, u.Parameters[param])
+	}
+	return parameters
+}
+
+func (u *UserBreach) GetAndInjectCookies(request *http.Request) *cookiejar.Jar{
+	//Adding cookies to Jar
+	jar, _ := cookiejar.New(nil)
+	jar.SetCookies(request.URL, u.Cookies)
+	
+	//Adding cookies to Request
+	for _,cookie := range u.Cookies{
+		request.AddCookie(cookie)
+	}
+	return jar
+}
+
+func (u *UserBreach) MergeCookies(c1 []*http.Cookie){
+	for _,cookie := range c1{
+		if !includesCookie(u.Cookies,cookie){
+			u.Cookies = append(u.Cookies,cookie)
+		}
+	}
+}
 
 // Extra Variables
 var ParameterNames = []string{
@@ -123,7 +184,6 @@ var CookieNames = []string{
 	"fr",
 }
 
-
 // Extra functions
 func searchParameters(node *html.Node, u *UserBreach){
 	// Declaration of functions
@@ -136,7 +196,7 @@ func searchParameters(node *html.Node, u *UserBreach){
 				if includes(ParameterNames,attr.Val){
 					for _,attr2 := range n.Attr{
 						if attr2.Key == "value"{
-							u.parameters[attr.Val] = attr2.Val
+							u.Parameters[attr.Val] = attr2.Val
 							break
 						}
 					}
@@ -148,16 +208,22 @@ func searchParameters(node *html.Node, u *UserBreach){
 			engine(c)
 		}
 	}
-	
 	// Running engine
 	engine(node)
 }
 
-
-
 func includes(slice []string,v string) bool{
 	for _,value := range slice{
 		if value == v{
+			return true
+		}
+	}
+	return false
+}
+
+func includesCookie(cookies []*http.Cookie, cookie *http.Cookie) bool{
+	for _,c := range cookies{
+		if c.Name == cookie.Name{
 			return true
 		}
 	}
