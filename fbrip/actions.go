@@ -1,4 +1,4 @@
-package gofbreach
+package fbrip
 
 import(
 	"fmt"

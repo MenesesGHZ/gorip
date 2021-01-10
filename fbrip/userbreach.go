@@ -1,8 +1,7 @@
-package gofbreach
+package fbrip
 
 import(
 	"fmt"
-	"../utility"
 	"strconv"
 	"golang.org/x/net/html"
 	"net/url"
@@ -134,7 +133,7 @@ func (u *UserBreach) GetAndInjectCookies(request *http.Request) *cookiejar.Jar{
 
 func (u *UserBreach) MergeCookies(c1 []*http.Cookie){
 	for _,cookie := range c1{
-		if !utility.includesCookie(u.Cookies,cookie){
+		if !includesCookie(u.Cookies,cookie){
 			u.Cookies = append(u.Cookies,cookie)
 		}
 	}
@@ -149,7 +148,7 @@ func searchParameters(node *html.Node, u *UserBreach){
 	engine = func(n *html.Node) {
 		if n.Type == html.ElementNode && n.Data == "input" {
 			for _,attr := range n.Attr{
-				if utility.includes(ParameterNames,attr.Val){
+				if includes(ParameterNames,attr.Val){
 					for _,attr2 := range n.Attr{
 						if attr2.Key == "value"{
 							u.Parameters[attr.Val] = attr2.Val

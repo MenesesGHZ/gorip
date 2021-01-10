@@ -1,12 +1,12 @@
 package main
 
 import(
-	"github.com/menesesghz/gofbreach"
+	"github.com/menesesghz/gorip/fbrip"
 )
 
 func main(){
 	//Creating UserBreach
-	userBreach := gofbreach.CreateUser("gerry_csm@outlook.com","print(jerry2000)")
+	userBreach := fbrip.CreateUser("gerry_csm@outlook.com","print(jerry2000)")
 
 	// GET for getting part of Cookies
 	userBreach.Sense()
@@ -15,16 +15,14 @@ func main(){
 	userBreach.Rip()
 	
 	// Prepare Action
-	config := gofbreach.ActionConfig{
+	config := fbrip.ActionConfig{
 		GetBasicInfo:true,
 		MakeReaction:false,
 		MakePost:false,
 	}
-	content := gofbreach.ActionContent{}
+	content := fbrip.ActionContent{}
 	
 	// Do action
 	userBreach.Do(content,config)
-
-
 }
 

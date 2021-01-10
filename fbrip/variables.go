@@ -1,4 +1,4 @@
-package gofbreach
+package fbrip
 
 var ParameterNames = []string{
 	"lsd",
