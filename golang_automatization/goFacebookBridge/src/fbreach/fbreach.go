@@ -8,11 +8,15 @@ import(
     	"net/url"
 	"net/http"
 	"net/http/cookiejar"
-	"io/ioutil"
+	"bytes"
+	"io"
 )
 
 
 type UserBreach struct{
+	name string
+	gender string
+	birthdate string
 	Parameters map[string]string
 	Cookies []*http.Cookie
 }
@@ -26,13 +30,41 @@ func CreateUser(email string, pass string) UserBreach{
 }
 
 
+type ActionConfig struct {
+	GetBasicInfo bool
+	MakeReaction bool
+	MakePost bool
+}
+
+type ActionContent struct {
+	url *url.URL
+	reaction int
+	comment string
+}
+
+
+func (u *UserBreach) Do(content ActionContent, config ActionConfig) bool{
+	success := false
+
+	if(config.GetBasicInfo){
+		success = u.getBasicInfo()
+	}
+	if(config.MakeReaction){
+	//	URL_struct,_ := url.Parse(content["url"])
+	//	success = u.makeReaction(URL_struct,content["reaction"])
+	}
+	if(config.MakePost){
+		//TO DEVELOP
+		fmt.Println("`fbreach` for the moment does not contain logic for posting :( ")
+		fmt.Println("comming soon...")
+	}
+	return success
+}
+
 func (u *UserBreach) Sense()  {
 	// Making GET request for https://mbasic.facebook.com/
 	URL_struct,_ := url.Parse("https://mbasic.facebook.com/")
-	response, err := http.Get(URL_struct.String())
-	if err!=nil{
-		fmt.Println(err)
-	}
+	response := u.GET(URL_struct)
 	
 	//Getting cookies & saving them to user
 	u.MergeCookies(response.Cookies())
@@ -41,6 +73,8 @@ func (u *UserBreach) Sense()  {
 	defer response.Body.Close()
 	doc,_ := html.Parse(response.Body)
 	searchParameters(doc,u)
+	
+	fmt.Println("Sense Completed.\n")
 }
 
 
@@ -48,14 +82,18 @@ func (u *UserBreach) Rip(){
 	URL_struct,_ := url.Parse("https://mbasic.facebook.com/login/device-based/regular/login/")
 	
 	//Ripping 	
-	loginRequest := u.ripPhase1(URL_struct)
-	response := u.ripPhase2(loginRequest)
-	
-	//printing stuff
-	fmt.Println("\n\n------------------------------------\n\n")
-	fmt.Println("HEADERS:\n",response.Header)
-	fmt.Println("\n\n------------------------------------\n\n")
-	fmt.Println("NATURAL RESPONSE:\n",response)
+	loginRequest,status := u.ripPhase1(URL_struct)
+	if status == 302{
+		fmt.Println("*Rip 1 Completed.")
+	}
+	_,status = u.ripPhase2(loginRequest)
+	if status == 200{
+		fmt.Println("*Rip 2 Completed.")
+	}
+	_,status = u.ripPhase3()
+	if status == 200{
+		fmt.Println("*Rip 3 Completed.")
+	}
 }
 
 
@@ -64,8 +102,7 @@ func setHeaders(request *http.Request, contentType string, paramsLength int){
 	request.Header.Set("Host",request.URL.Host)
 	request.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0")
 	request.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
-	request.Header.Set("Accept-Language", "en-US,en;q=0.5")
-	request.Header.Set("Accept-Encoding", "gzip, deflate")
+	request.Header.Set("Accept-Language", "en-US,en;q=1.0")
 	request.Header.Set("Connection", "close")
 	request.Header.Set("Upgrade-Insecure-Requests", "1")
 
@@ -77,7 +114,7 @@ func setHeaders(request *http.Request, contentType string, paramsLength int){
 	}
 }
 
-func (u *UserBreach) ripPhase1(URL_struct *url.URL) *http.Request{
+func (u *UserBreach) ripPhase1(URL_struct *url.URL) (*http.Request,int){
 	//Get user's parameters as url.Values type
 	parameters := u.GetParameters()
 
@@ -99,18 +136,15 @@ func (u *UserBreach) ripPhase1(URL_struct *url.URL) *http.Request{
 		}
 	//Doing POST request & getting a response with [StatusCode = 302]
 	response,_ := client.Do(request)
-	defer response.Body.Close()
-	
+	response.Body.Close()
+
 	//Merging response cookies to user
 	u.MergeCookies(response.Cookies())
 	
-	//Printing status code
-	fmt.Printf("[ StatusCode = %d ]\n",response.StatusCode)
-	
-	return loginRequest
+	return loginRequest,response.StatusCode
 }
 
-func (u *UserBreach) ripPhase2(loginRequest *http.Request) *http.Response{
+func (u *UserBreach) ripPhase2(loginRequest *http.Request) (*http.Response,int){
 	//Injecting cookies
 	jar := u.GetAndInjectCookies(loginRequest)
 	
@@ -119,20 +153,64 @@ func (u *UserBreach) ripPhase2(loginRequest *http.Request) *http.Response{
 
 	//Doing POST request & getting a response with [StatusCode = 200]
 	response,_ := client.Do(loginRequest)
-	defer response.Body.Close()
+	response.Body.Close()
 	
-	//Printing status code [ StatusCode = 200 ]
-	fmt.Printf("[ StatusCode = %d ]\n",response.StatusCode)
+	return response,response.StatusCode
+}
 
-	body,err := ioutil.ReadAll(response.Body)
-	if err != nil{
-		fmt.Println("BODY ERROR:",err)
-	}
-	fmt.Println("BODY:",string(body))
+func (u *UserBreach) ripPhase3() (*http.Response,int){
 
+	//URL To submit the cancelation of `sign in with a touch`
+	URL_struct,_ := url.Parse("https://mbasic.facebook.com/login/save-device/cancel/?flow=interstitial_nux&nux_source=regular_login")
+	//Making GET Request and Closing Body Response
+	response := u.GET(URL_struct)
+	response.Body.Close()
 
+	return response,response.StatusCode
+}
+
+func(u *UserBreach) GET(URL_struct *url.URL) *http.Response{
+	//Making new http GET request
+	request,_:= http.NewRequest("GET",URL_struct.String(),nil)
+	setHeaders(request, "", -1)
+	//Injecting cookies
+	jar := u.GetAndInjectCookies(request)
+	//Making http client
+	client :=  &http.Client{Jar:jar}
+	//Doing GET request
+	response,_ := client.Do(request)
 	return response
 }
+
+//
+// ACTIONS
+//
+func(u *UserBreach) getBasicInfo() bool{
+
+	// Making GET request
+	URL_struct,_ := url.Parse("https://mbasic.facebook.com/profile.php?v=info")
+	response := u.GET(URL_struct)
+
+	// Just getting the name (for now)
+	z := html.NewTokenizer(response.Body)
+	for {
+		tt := z.Next()
+		if tt == html.ErrorToken {
+			// ...
+			return false
+		}
+		if string(z.Raw()) == "<title>"{
+			tt = z.Next()
+			fmt.Println("> Welcome ->",z.Token())	
+			u.name = string(z.Raw())
+		}
+	}
+	return true
+}
+
+//func(u *UserBreach) makeReaction(url *url.URL, reaction int) bool{
+//
+//}
 
 func(u *UserBreach) GetParameters() url.Values{
 	// Setting user's parameters 
@@ -184,7 +262,8 @@ var CookieNames = []string{
 	"fr",
 }
 
-// Extra functions
+// Extra functions  
+// *they have to be improved
 func searchParameters(node *html.Node, u *UserBreach){
 	// Declaration of functions
 	var engine func(*html.Node)
@@ -230,4 +309,8 @@ func includesCookie(cookies []*http.Cookie, cookie *http.Cookie) bool{
 	return false
 }
 
-
+func showBody(body io.Reader){
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(body)
+	fmt.Println(buf.String())
+}
