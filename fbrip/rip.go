@@ -1,4 +1,5 @@
-package gofbreach
+package fbrip
+
 
 import(
 	"strings"
