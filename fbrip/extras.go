@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"bytes"
 	"net/http"
+	"golang.org/x/net/html"
 )
 
 
@@ -33,3 +34,30 @@ func showBody(body io.Reader){
 	fmt.Println(buf.String())
 }
 
+// Search for input parameters. * It must be improved
+func searchParameters(node *html.Node, u *UserRip){
+	// Declaration of functions
+	var engine func(*html.Node)
+	
+	// Defining functions
+	engine = func(n *html.Node) {
+		if n.Type == html.ElementNode && n.Data == "input" {
+			for _,attr := range n.Attr{
+				if includes(ParameterNames,attr.Val){
+					for _,attr2 := range n.Attr{
+						if attr2.Key == "value"{
+							u.Parameters[attr.Val] = attr2.Val
+							break
+						}
+					}
+					break
+				}
+			}
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			engine(c)
+		}
+	}
+	// Running engine
+	engine(node)
+}
