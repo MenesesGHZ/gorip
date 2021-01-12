@@ -81,7 +81,7 @@ func (u *UserRip) Scrap(Urls []*url.URL, folderPath string){
 		}
 		//Creating folder if it does not exist
 		if _, err := os.Stat(folderPath); os.IsNotExist(err) {
-			os.Mkdir(folderPath, os.ModeDir)
+			os.Mkdir(folderPath, 0777)
 		}
 		//Writing in location
 		err := ioutil.WriteFile(fullpath,bodyToBytes(response.Body), 0666)
