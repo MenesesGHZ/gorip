@@ -41,26 +41,14 @@ func (u *UserRip) Sense()  {
 	//Parsing html returning an *html.Node. Searching params and adding them to user.
 	defer response.Body.Close()
 	searchParamsForUser(response.Body, u)
-	fmt.Println("* Sense Completed.")
 }
 
 func (u *UserRip) Rip() {
 	URL_struct,_ := url.Parse("https://mbasic.facebook.com/login/device-based/regular/login/")
 	//Starting Login Process	
-	loginRequest,status := u.ripPhase1(URL_struct)
-	if status == 302{
-		fmt.Println("* Rip [1/3] Completed.")
-		_,status = u.ripPhase2(loginRequest)
-		if status == 200{
-			fmt.Println("* Rip [2/3] Completed.")
-			_,status = u.ripPhase3()
-			if status == 200{
-				fmt.Println("* Rip [3/3] Completed.")
-			}
-		}
-
-	}
-
+	loginRequest := u.ripPhase1(URL_struct)
+	u.ripPhase2(loginRequest)
+	u.ripPhase3()
 }
 
 func (u *UserRip) Do(config *ActionConfig){
@@ -82,7 +70,7 @@ func (u *UserRip) Do(config *ActionConfig){
 	}
 }
 
-func (u *UserRip) ripPhase1(URL_struct *url.URL) (*http.Request,int){
+func (u *UserRip) ripPhase1(URL_struct *url.URL) *http.Request{
 	//Get user's parameters as url.Values type
 	parameters := u.GetParametersAsUrlValues()
 
@@ -109,10 +97,10 @@ func (u *UserRip) ripPhase1(URL_struct *url.URL) (*http.Request,int){
 	//Merging response cookies to user
 	u.MergeCookies(response.Cookies())
 
-	return loginRequest,response.StatusCode
+	return loginRequest
 }
 
-func (u *UserRip) ripPhase2(loginRequest *http.Request) (*http.Response,int){
+func (u *UserRip) ripPhase2(loginRequest *http.Request) *http.Response{
 	//Injecting cookies
 	jar := u.GetAndInjectCookies(loginRequest)
 
@@ -123,17 +111,17 @@ func (u *UserRip) ripPhase2(loginRequest *http.Request) (*http.Response,int){
 	response,_ := client.Do(loginRequest)
 	response.Body.Close()
 
-	return response,response.StatusCode
+	return response
 }
 
-func (u *UserRip) ripPhase3() (*http.Response,int){
+func (u *UserRip) ripPhase3() *http.Response{
 	//URL To submit the cancelation of `sign in with a touch`
 	URL_struct,_ := url.Parse("https://mbasic.facebook.com/login/save-device/cancel/?flow=interstitial_nux&nux_source=regular_login")
 	//Making GET Request and Closing Body Response
 	response := u.GET(URL_struct)
 	response.Body.Close()
-
-	return response,response.StatusCode
+	
+	return response
 }
 
 func(u *UserRip) GET(URL_struct *url.URL) *http.Response{

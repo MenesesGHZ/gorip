@@ -1,7 +1,6 @@
 package fbrip
 
 import (
-	"fmt"
 	"net/url"
 )
 
@@ -33,5 +32,6 @@ func(u *UserRip) makeReaction(Url *url.URL, reaction string){
 	response = u.GET(tempUrl)
 	//Searching for `ufi/reaction` (it contains specific Query Parameters) 
 	tempUrl = searchUfiReactionUrl(response.Body,reaction)
-	
+	//Doing reaction
+	u.GET(tempUrl)
 }
