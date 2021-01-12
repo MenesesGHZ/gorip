@@ -2,33 +2,34 @@ package fbrip
 
 import "net/url"
 
-type info struct{
+type InfoStruct struct{
 	Name string
 	Birthday string
 	Gender string
 }
 
-type react struct{
+type ReactStruct struct{
 	Url *url.URL
 	Id string
 }
 
-type post struct{
+type PostStruct struct{
 	Url *url.URL
 	Content string
 }
 
-type comment struct{
+type CommentStruct struct{
 	Url *url.URL
 	Content string
 }
 
-type scrap struct{
+type ScrapStruct struct{
 	Urls []*url.URL
+	FolderPath string
 }
 
 //Setters for Structs
-func (i *info) setInfo(basicInfo map[string]string){
+func (i *InfoStruct) setInfo(basicInfo map[string]string){
 	i.Name = basicInfo["Name"]
 	i.Birthday = basicInfo["Birthday"]
 	i.Gender = basicInfo["Gender"]

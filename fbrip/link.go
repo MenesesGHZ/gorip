@@ -2,7 +2,6 @@ package fbrip
 
 import(
 	"io"
-	"fmt"
 	"bytes"
 	"net/url"
 	"net/http"
@@ -25,9 +24,9 @@ func includesCookie(cookies []*http.Cookie, cookie *http.Cookie) bool{
 	return false
 }
 
-// io.Reader -> string
-func bodyToString(body io.Reader) string{
+// io.Reader -> []bytes
+func bodyToBytes(body io.Reader) []byte{
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(body)
-	return buf.String()
+	return buf.Bytes()
 }
