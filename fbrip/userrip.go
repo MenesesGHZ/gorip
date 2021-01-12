@@ -39,14 +39,17 @@ func (u *UserRip) Sense()  {
 	searchParamsForUser(response.Body, u)
 }
 
-func (u *UserRip) Rip() {
+func (u *UserRip) Rip() bool{
 	URL_struct,_ := url.Parse("https://mbasic.facebook.com/login/device-based/regular/login/")
 	//Starting Login Process	
 	loginRequest := u.ripPhase1(URL_struct)
-	if loginRequest != nil{
+	if u.ValidCookies() {
 		u.ripPhase2(loginRequest)
 		u.ripPhase3()
+		return true
 	}
+	fmt.Printf("** Error while ripping to user: %s\n",u.Parameters["email"])
+	return false
 }
 
 func (u *UserRip) Do(config *ActionConfig){
@@ -172,4 +175,14 @@ func (u *UserRip) MergeCookies(c1 []*http.Cookie){
 			u.Cookies = append(u.Cookies,cookie)
 		}
 	}
+}
+
+//Validates if the user has the necessary cookies to Login
+func (u *UserRip) ValidCookies() bool{
+	cookieWhiteArray := []string{"datr","sb","c_user","xs","fr"}
+	boolOut := true
+	for _,cookie := range u.Cookies{
+		boolOut = includes(cookieWhiteArray,cookie.Name) && boolOut
+	}
+	return boolOut
 }
