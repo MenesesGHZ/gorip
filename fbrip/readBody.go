@@ -2,8 +2,9 @@ package fbrip
 
 import(
 	"io"
-	"fmt"
 	"net/url"
+	"fmt"
+	"strconv"
 	"strings" // just to make the first letter uppercase ;d
 	"github.com/PuerkitoBio/goquery"
 )
@@ -41,26 +42,62 @@ func searchBasicInfo(body io.Reader) map[string]string{
 	bi := make(map[string]string)
 	// Searching path: 1*<div id="basic-info"> -> 6*<a>
 	//(<a> contains href which helps to determine what type of info attribute we are dealing)
-	searchEngine(body,"div#basic-info a",func(i int,s *goquery.Selection){
+	searchEngine(body,"div#basic-info a",func(i int,a *goquery.Selection){
 		// Parsing url from href to then get the values to determine attr
-		hrefValue,hOk := s.Attr("href")
+		hrefValue,hOk := a.Attr("href")
 		hUrl,_ := url.Parse(hrefValue)
-		v := hUrl.Query()
-		if includes(searchList,v.Get("edit")) && hOk{
-			key := strings.Title(v.Get("edit"))
-			// a < span < div < td - td > div > InfoAttribute 
-			bi[key] = s.Parent().Parent().Parent().Next().Children().Text()
+		if hOk{
+			//Getting Query Parameters from `hUrl`
+			v := hUrl.Query()
+			if  includes(searchList,v.Get("edit")){
+				key := strings.Title(v.Get("edit"))
+				// a < span < div < td - td > div > InfoAttribute 
+				bi[key] = a.Parent().Parent().Parent().Next().Children().Text()
+			}
 		}
 	})
 	//Getting user's name
-	searchEngine(body,"title",func(i int,s *goquery.Selection){
-		bi["Name"] = s.Text()
+	searchEngine(body,"title",func(i int,t *goquery.Selection){
+		bi["Name"] = t.Text()
 	})
 	return bi
 }
 
 
-//func searchQueryParameters(body io.Reader){
-//	
-//}
+func searchReactionPickerUrl(body io.Reader) *url.URL{
+	//Declaring URL var
+	var Url *url.URL
+	// Looking for ActionBar where its patern path is: tbody > tr > td > a
+	searchEngine(body,"tbody tr td a",func(i int,a *goquery.Selection){
+		// Finding the url that follows the path == `/reaction/picker/`
+		hrefValue,hOk := a.Attr("href")
+		if hOk {
+			hUrl,_ := url.Parse(hrefValue)
+			fmt.Println(hUrl.Path,hUrl.Path=="/reactions/picker/")
+			if hUrl.Path == "/reactions/picker/"{
+				Url = fixUrl(hUrl)
+			}
+		}
+	})
+	return Url
+}
 
+func searchUfiReactionUrl(body io.Reader, reactId string) *url.URL{
+	//Declaring Url & Converting `reactId` to integer
+	var Url *url.URL
+	id,err := strconv.Atoi(reactId)
+	if err!=nil{
+		panic("Reaction ID must be string")
+	}
+	// Looking for ActionBar where its patern path is: tbody > tr > td > a
+	searchEngine(body,"tbody tr td a",func(i int,a *goquery.Selection){
+		// Finding the url that follows the path == `/reaction/picker/`
+		hrefValue,hOk := a.Attr("href")
+		fmt.Println(i)
+		if hOk && i == id{
+			Url,_ = url.Parse(hrefValue)
+			Url = fixUrl(Url)
+		}
+	})
+	return Url
+}
