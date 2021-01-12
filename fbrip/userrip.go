@@ -11,19 +11,15 @@ import(
 type UserRip struct{
 	Parameters map[string]string
 	Cookies []*http.Cookie
-	Info info
+	Info InfoStruct
 }
 
 func CreateUser(email string, pass string) UserRip{
 	parameters := map[string]string{
 		"email":email,
 		"pass":pass,
-		"lsd":"",
-		"jazoest":"",
-		"m_ts":"",
-		"li":"",
-		"try_number":"",
-		"unrecognized_tries":"",
+		"lsd":"","jazoest":"","m_ts":"","li":"",
+		"try_number":"","unrecognized_tries":"",
 		"login":"",
 	}
 	userRip := UserRip{Parameters:parameters}
@@ -47,16 +43,24 @@ func (u *UserRip) Rip() {
 	URL_struct,_ := url.Parse("https://mbasic.facebook.com/login/device-based/regular/login/")
 	//Starting Login Process	
 	loginRequest := u.ripPhase1(URL_struct)
-	u.ripPhase2(loginRequest)
-	u.ripPhase3()
+	if loginRequest != nil{
+		u.ripPhase2(loginRequest)
+		u.ripPhase3()
+	}
 }
 
 func (u *UserRip) Do(config *ActionConfig){
+	//Getting Basic Info
 	if(config.GetBasicInfo){
-		u.getBasicInfo()
+		u.GetBasicInfo()
 	}
+	//Make Reaction to acertain post
 	if(config.React.Url!=nil && config.React.Id != ""){
-		u.makeReaction(config.React.Url, config.React.Id)
+		u.MakeReaction(config.React.Url, config.React.Id)
+	}
+	//Scrap Urls
+	if len(config.Scrap.Urls)>0{
+		u.Scrap(config.Scrap.Urls,config.Scrap.FolderPath)
 	}
 	if(config.Post.Url!=nil && config.Post.Content != ""){
 		//TO DEVELOP
@@ -68,15 +72,11 @@ func (u *UserRip) Do(config *ActionConfig){
 		fmt.Println("`fbrip` for the moment does not contain logic for comment :( ")
 		fmt.Println("comming soon...")
 	}
-	if len(config.Scrap.Urls)>0{
-		u.scrap(config.Scrap.Urls)
-	}
 }
 
 func (u *UserRip) ripPhase1(URL_struct *url.URL) *http.Request{
 	//Get user's parameters as url.Values type
 	parameters := u.GetParametersAsUrlValues()
-
 	//Making request to URL with respective parameters & setting its headers
 	request,_:= http.NewRequest("POST",URL_struct.String(),strings.NewReader(parameters.Encode()))
 	setHeaders(request, "application/x-www-form-urlencoded;", len(parameters.Encode()))
@@ -96,7 +96,6 @@ func (u *UserRip) ripPhase1(URL_struct *url.URL) *http.Request{
 	//Doing POST request & getting a response with [StatusCode = 302]
 	response,_ := client.Do(request)
 	response.Body.Close()
-
 	//Merging response cookies to user
 	u.MergeCookies(response.Cookies())
 
@@ -106,10 +105,8 @@ func (u *UserRip) ripPhase1(URL_struct *url.URL) *http.Request{
 func (u *UserRip) ripPhase2(loginRequest *http.Request) *http.Response{
 	//Injecting cookies
 	jar := u.GetAndInjectCookies(loginRequest)
-
 	//Making http client
 	client :=  &http.Client{Jar:jar}
-
 	//Doing POST request & getting a response with [StatusCode = 200]
 	response,_ := client.Do(loginRequest)
 	response.Body.Close()

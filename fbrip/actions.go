@@ -3,19 +3,21 @@ package fbrip
 import (
 	"os"
 	"fmt"
+	"path"
+	"io/ioutil"
 	"net/url"
 )
 
 type ActionConfig struct{
 	GetBasicInfo bool
-	React react
-	Post post
-	Comment comment
-	Scrap scrap
+	React ReactStruct
+	Post PostStruct
+	Comment CommentStruct
+	Scrap ScrapStruct
 }
 
 // ACTIONS
-func(u *UserRip) getBasicInfo(){
+func(u *UserRip) GetBasicInfo(){
 	// Making GET request
 	URL_struct,_ := url.Parse("https://mbasic.facebook.com/profile.php?v=info")
 	response := u.GET(URL_struct)
@@ -25,7 +27,7 @@ func(u *UserRip) getBasicInfo(){
 	u.Info.setInfo(bi)
 }
 
-func(u *UserRip) makeReaction(Url *url.URL, reaction string){
+func(u *UserRip) MakeReaction(Url *url.URL, reaction string){
 	//Fixing Url & Making GET request in the publication link
 	Url = fixUrl(Url)
 	response := u.GET(Url)
@@ -39,20 +41,33 @@ func(u *UserRip) makeReaction(Url *url.URL, reaction string){
 	u.GET(tempUrl)
 }
 
-
 //scrap Urls
-func (u *UserRip) scrap(Urls []*url.URL){
+func (u *UserRip) Scrap(Urls []*url.URL, folderPath string){
+	folderPath = path.Clean(folderPath)
 	for _,Url := range Urls{
-		path := fmt.Sprintf("./scraps/%s-%s",u.Parameters["email"],Url.Path)
-		f, err := os.Create(path)
-		if err != nil {
-			fmt.Println(err)
+		//Making filename string
+		filename := fmt.Sprintf("%s_%s_%s.html",u.Parameters["email"],Url.Host,Url.Path)
+		//fixing filename. Converting "/","." -> "-"
+		var rs []rune
+		for _,r := range filename{
+			if string(r) == "/" || string(r) == "."{
+				rs = append(rs,'-')
+				continue
+			}
+			rs = append(rs,r)
 		}
-		defer f.Close()
-		response := u.GET()
-		_, err2 := f.WriteString(bodyToString(response.Body))
-		if err2 != nil {
-			fmt.Println(err2)
+		//Making full path to file
+		fullpath := path.Join(folderPath,string(rs))
+		fmt.Println(fullpath)
+		//Getting response from Url
+		response := u.GET(Url)
+		//Creating folder if it does not exist
+		if _, err := os.Stat(folderPath); os.IsNotExist(err) {
+			os.Mkdir(folderPath, os.ModeDir)
+		}
+		err := ioutil.WriteFile(fullpath,bodyToBytes(response.Body), 0755)
+		if err != nil {
+			fmt.Printf("Unable to write file: %v", err)
 		}
 	}
 }

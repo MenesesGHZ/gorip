@@ -1,6 +1,7 @@
 package fbrip
 
 import(
+	"path"
 	"net/url"
 	"io/ioutil"
 	"encoding/json"
@@ -24,6 +25,8 @@ func ReadRip(path string) ([]*UserRip, *ActionConfig){
 	return us,ac
 }
 
+//func WriteRip(path string)
+
 func readUsers(users interface{}) []*UserRip{
 	var us []*UserRip
 	for _,user := range users.([]interface{}){
@@ -43,7 +46,12 @@ func readUser(user interface{}) *UserRip{
 }
 
 func readUserParameters(pI interface{}) map[string]string {
-	p := make(map[string]string)
+	p := map[string]string{
+		"email":"","pass":"","lsd":"",
+		"jazoest":"","m_ts":"","li":"",
+		"try_number":"0","unrecognized_tries":"0",
+		"uid":"","login":"",
+	}
 	for k, v := range pI.(map[string]interface{}){
 		switch vv := v.(type) {
 		case string:
@@ -78,7 +86,7 @@ func readActionConfig(acI interface{}) *ActionConfig{
 	}
 }
 
-func readActionConfigPost(pI interface{}) post{
+func readActionConfigPost(pI interface{}) PostStruct{
 	p := make(map[string]string)
 	pI = pI.(map[string]interface{})
 	for k, v := range pI.(map[string]interface{}){
@@ -90,13 +98,13 @@ func readActionConfigPost(pI interface{}) post{
 		}
 	}
 	url,_ := url.Parse(p["Url"])
-	return post{
+	return PostStruct{
 		Url:url,
 		Content:p["Content"],
 	}
 }
 
-func readActionConfigReact(rI interface{}) react{
+func readActionConfigReact(rI interface{}) ReactStruct{
 	r  := make(map[string]string)
 	rI = rI.(map[string]interface{})
 	for k, v := range rI.(map[string]interface{}){
@@ -108,13 +116,13 @@ func readActionConfigReact(rI interface{}) react{
 		}
 	}
 	url,_ := url.Parse(r["Url"])
-	return react{
+	return ReactStruct{
 		Url:url,
 		Id:r["Id"],
 	}
 }
 
-func readActionConfigComment(cI interface{}) comment{
+func readActionConfigComment(cI interface{}) CommentStruct{
 	c := make(map[string]string)
 	cI = cI.(map[string]interface{})
 	for k, v := range cI.(map[string]interface{}){
@@ -126,28 +134,39 @@ func readActionConfigComment(cI interface{}) comment{
 		}
 	}
 	url,_ := url.Parse(c["Url"])
-	return comment{
+	return CommentStruct{
 		Url:url,
 		Content:c["Content"],
 	}
 }
 
-func readActionConfigScrap(sI interface{}) scrap{
+func readActionConfigScrap(sI interface{}) ScrapStruct{
 	var s []*url.URL
-	sI = sI.([]interface{})
-	for _,v := range sI.([]interface{}){
+	var p string
+	sI = sI.(map[string]interface{})
+	for _,v := range sI.(map[string]interface{}){
 		switch vv := v.(type) {
 		case string:
-			tempUrl,err := url.Parse(vv)
-			if err!=nil{
-				panic("Error while reading `ActionConfig > Scrap` in JSON")
-			}
-			s = append(s,tempUrl)
+			p = path.Clean(vv)
+		case interface{}://for Urls slice
+			for _,m := range vv.([]interface{}){
+				switch mm := m.(type){
+					case string:
+						tempUrl,err := url.Parse(mm)
+						if err!=nil{
+							panic("Error while reading `ActionConfig > Scrap > Urls` in JSON")
+						}
+						s = append(s,tempUrl)
+					default:
+						panic("Error while reading `ActionConfig > Scrap > Urls` in JSON")
+					}
+				}
 		default:
-			panic("Error while reading `ActionConfig > Comment` in JSON")
+			panic("Error while reading `ActionConfig > Scrap` in JSON")
 		}
 	}
-	return scrap{
+	return ScrapStruct{
 		Urls:s,
+		FolderPath:p,
 	}
 }
