@@ -6,7 +6,6 @@ import(
 	"net/url"
 	"net/http"
 	"net/http/cookiejar"
-	"golang.org/x/net/html"
 )
 
 type UserRip struct{
@@ -16,9 +15,17 @@ type UserRip struct{
 }
 
 func CreateUser(email string, pass string) UserRip{
-	parameters := make(map[string]string)
-	parameters["email"] = email
-	parameters["pass"] = pass
+	parameters := map[string]string{
+		"email":email,
+		"pass":pass,
+		"lsd":"",
+		"jazoest":"",
+		"m_ts":"",
+		"li":"",
+		"try_number":"",
+		"unrecognized_tries":"",
+		"login":"",
+	}
 	userRip := UserRip{Parameters:parameters}
 	return userRip
 }
@@ -33,36 +40,35 @@ func (u *UserRip) Sense()  {
 	
 	//Parsing html returning an *html.Node. Searching params and adding them to user.
 	defer response.Body.Close()
-	doc,_ := html.Parse(response.Body)
-	searchParameters(doc,u)
-	
-	fmt.Println("Sense Completed.\n")
+	searchParamsForUser(response.Body, u)
+	fmt.Println("* Sense Completed.")
 }
 
 func (u *UserRip) Rip() {
 	URL_struct,_ := url.Parse("https://mbasic.facebook.com/login/device-based/regular/login/")
-	
+	//Starting Login Process	
 	loginRequest,status := u.ripPhase1(URL_struct)
 	if status == 302{
-		fmt.Println("*Rip [1/3] Completed.")
+		fmt.Println("* Rip [1/3] Completed.")
+		_,status = u.ripPhase2(loginRequest)
+		if status == 200{
+			fmt.Println("* Rip [2/3] Completed.")
+			_,status = u.ripPhase3()
+			if status == 200{
+				fmt.Println("* Rip [3/3] Completed.")
+			}
+		}
+
 	}
-	_,status = u.ripPhase2(loginRequest)
-	if status == 200{
-		fmt.Println("*Rip [2/3] Completed.")
-	}
-	_,status = u.ripPhase3()
-	if status == 200{
-		fmt.Println("*Rip [3/3] Completed.")
-	}
+
 }
 
-func (u *UserRip) Do(config *ActionConfig) bool{
-	success := false
+func (u *UserRip) Do(config *ActionConfig){
 	if(config.GetBasicInfo){
-		success = u.getBasicInfo()
+		u.getBasicInfo()
 	}
 	if(config.React.Url!=nil && config.React.Id != ""){
-		success = u.makeReaction(config.React.Url, config.React.Id)
+		u.makeReaction(config.React.Url, config.React.Id)
 	}
 	if(config.Post.Url!=nil && config.Post.Content != ""){
 		//TO DEVELOP
@@ -74,12 +80,11 @@ func (u *UserRip) Do(config *ActionConfig) bool{
 		fmt.Println("`fbrip` for the moment does not contain logic for comment :( ")
 		fmt.Println("comming soon...")
 	}
-	return success
 }
 
 func (u *UserRip) ripPhase1(URL_struct *url.URL) (*http.Request,int){
 	//Get user's parameters as url.Values type
-	parameters := u.GetParameters()
+	parameters := u.GetParametersAsUrlValues()
 
 	//Making request to URL with respective parameters & setting its headers
 	request,_:= http.NewRequest("POST",URL_struct.String(),strings.NewReader(parameters.Encode()))
@@ -144,13 +149,21 @@ func(u *UserRip) GET(URL_struct *url.URL) *http.Response{
 	return response
 }
 
-func(u *UserRip) GetParameters() url.Values{
+func(u *UserRip) GetParametersAsUrlValues() url.Values{
 	// Setting user's parameters 
 	parameters := url.Values{}
-	for _,param := range ParameterNames{
+	for param := range u.Parameters{
 		parameters.Set(param, u.Parameters[param])
 	}
 	return parameters
+}
+
+func(u *UserRip) GetParameterKeys() []string{
+	keys := make([]string, 0, len(u.Parameters))
+	for k := range u.Parameters {
+		keys = append(keys, k)
+	}
+	return keys
 }
 
 func (u *UserRip) GetAndInjectCookies(request *http.Request) *cookiejar.Jar{
