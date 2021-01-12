@@ -25,9 +25,9 @@ func includesCookie(cookies []*http.Cookie, cookie *http.Cookie) bool{
 	return false
 }
 
-//Show Body Content in the Console
-func showBody(body io.Reader){
+// io.Reader -> string
+func bodyToString(body io.Reader) string{
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(body)
-	fmt.Println(buf.String())
+	return buf.String()
 }

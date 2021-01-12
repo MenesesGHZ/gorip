@@ -65,14 +65,16 @@ func readUserParameters(pI interface{}) map[string]string {
 
 func readActionConfig(acI interface{}) *ActionConfig{
 	ac := acI.(map[string]interface{})
-	p := readActionConfigPost(ac["Post"])
 	r := readActionConfigReact(ac["React"])
-	c := readActionConfigComment(ac["Comment"])
+//	p := readActionConfigPost(ac["Post"])
+//	c := readActionConfigComment(ac["Comment"])
+	s := readActionConfigScrap(ac["Scrap"])
 	return &ActionConfig{
 		GetBasicInfo:true, // For now default is `true` in order to get the cookies. Need to parse cookies from string properly in order to change this. 
 		React:r,
-		Post:p,
-		Comment:c,
+//		Post:p,
+//		Comment:c,
+		Scrap:s,
 	}
 }
 
@@ -127,5 +129,25 @@ func readActionConfigComment(cI interface{}) comment{
 	return comment{
 		Url:url,
 		Content:c["Content"],
+	}
+}
+
+func readActionConfigScrap(sI interface{}) scrap{
+	var s []*url.URL
+	sI = sI.([]interface{})
+	for _,v := range sI.([]interface{}){
+		switch vv := v.(type) {
+		case string:
+			tempUrl,err := url.Parse(vv)
+			if err!=nil{
+				panic("Error while reading `ActionConfig > Scrap` in JSON")
+			}
+			s = append(s,tempUrl)
+		default:
+			panic("Error while reading `ActionConfig > Comment` in JSON")
+		}
+	}
+	return scrap{
+		Urls:s,
 	}
 }

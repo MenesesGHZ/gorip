@@ -23,6 +23,10 @@ type comment struct{
 	Content string
 }
 
+type scrap struct{
+	Urls []*url.URL
+}
+
 //Setters for Structs
 func (i *info) setInfo(basicInfo map[string]string){
 	i.Name = basicInfo["Name"]
