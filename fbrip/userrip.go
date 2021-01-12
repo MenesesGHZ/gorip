@@ -68,6 +68,9 @@ func (u *UserRip) Do(config *ActionConfig){
 		fmt.Println("`fbrip` for the moment does not contain logic for comment :( ")
 		fmt.Println("comming soon...")
 	}
+	if len(config.Scrap.Urls)>0{
+		u.scrap(config.Scrap.Urls)
+	}
 }
 
 func (u *UserRip) ripPhase1(URL_struct *url.URL) *http.Request{

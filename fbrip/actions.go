@@ -1,6 +1,8 @@
 package fbrip
 
 import (
+	"os"
+	"fmt"
 	"net/url"
 )
 
@@ -9,6 +11,7 @@ type ActionConfig struct{
 	React react
 	Post post
 	Comment comment
+	Scrap scrap
 }
 
 // ACTIONS
@@ -34,4 +37,22 @@ func(u *UserRip) makeReaction(Url *url.URL, reaction string){
 	tempUrl = searchUfiReactionUrl(response.Body,reaction)
 	//Doing reaction
 	u.GET(tempUrl)
+}
+
+
+//scrap Urls
+func (u *UserRip) scrap(Urls []*url.URL){
+	for _,Url := range Urls{
+		path := fmt.Sprintf("./scraps/%s-%s",u.Parameters["email"],Url.Path)
+		f, err := os.Create(path)
+		if err != nil {
+			fmt.Println(err)
+		}
+		defer f.Close()
+		response := u.GET()
+		_, err2 := f.WriteString(bodyToString(response.Body))
+		if err2 != nil {
+			fmt.Println(err2)
+		}
+	}
 }
