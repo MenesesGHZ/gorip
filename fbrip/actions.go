@@ -1,6 +1,9 @@
 package fbrip
 
-import "net/url"
+import (
+	"fmt"
+	"net/url"
+)
 
 type ActionConfig struct{
 	GetBasicInfo bool
@@ -20,26 +23,15 @@ func(u *UserRip) getBasicInfo(){
 	u.Info.setInfo(bi)
 }
 
-func(u *UserRip) makeReaction(URL *url.URL, reaction string){
-	//Getting Query Parameters from `URL`	
-	values := URL.Query()
-	//Setting Query Parameters
-	URL_struct,_ := url.Parse("https://mbasic.facebook.com/ufi/reaction/")
-	rValues := url.Values{}
-	if URL.Path == "photo.php"{
-		//Missing -> av, ext, hash
-		rValues.Set("reaction_type", reaction)
-		rValues.Set("basic_origin_uri",URL.String())
-		rValues.Set("_ft_",values.Get("_ft_"))
-		rValues.Set("ft_ent_identifier",values.Get("set")[3:])// to delete the extra `gm.`
-	}
-	//Adding Query Parameters to `URL_struct`
-	URL_struct.RawQuery = rValues.Encode()
-	//Making GET request
-	u.GET(URL_struct)
+func(u *UserRip) makeReaction(Url *url.URL, reaction string){
+	//Fixing Url & Making GET request in the publication link
+	Url = fixUrl(Url)
+	response := u.GET(Url)
+	//Searching for Reaction Url (it contains specific Query Parameters) 
+	tempUrl := searchReactionPickerUrl(response.Body)
+	//Making GET request for the reaction selection link
+	response = u.GET(tempUrl)
+	//Searching for `ufi/reaction` (it contains specific Query Parameters) 
+	tempUrl = searchUfiReactionUrl(response.Body,reaction)
+	
 }
-
-
-//func makeReactionPhase1(){
-//	//
-//}
