@@ -52,13 +52,14 @@ for i,user := range users{
 
 ```
 ### Make multiple Reactions in multiple accounts
+The reactions Id are the same that Facebook provides and are listed below:
 
+<br>
 <div align="center" width="100%">
-  <img src="./assets/reactions.png" align="center" width="420px" height="auto">
+  <img src="./assets/reactions.png" align="center" width="310px" height="auto">
 </div>
 <br>
 
-The reactions Id are the same that Facebook provides and are listed below:
 - "1" -> Like
 - "2" -> Love
 - "3" -> Care
