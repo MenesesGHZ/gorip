@@ -51,8 +51,6 @@ func CreateReact(ids []string, urls []string) ReactStruct{
 	}
 }
 
-
-
 //Setters for Structs
 func (i *InfoStruct) setInfo(basicInfo map[string]string){
 	i.Name = basicInfo["Name"]
@@ -60,7 +58,21 @@ func (i *InfoStruct) setInfo(basicInfo map[string]string){
 	i.Gender = basicInfo["Gender"]
 }
 
+//Checks
+func (r *ReactStruct) Checks() bool{
+	boolOut := (len(r.Urls)>0 && len(r.Ids)>0)
+	boolOut = (len(r.Urls) == len(r.Urls)) && boolOut
+	
+	for _,Url := range r.Urls{
+		boolOut = (Url.String() != "" && boolOut)
+	}
 
+	for id := range r.Ids{
+		boolOut = (string(id)!="" && boolOut)
+	}
+	
+	return boolOut
+}
 
 func parseUrls(urls[]string) []*url.URL{
 	//Slice of parsed urls
