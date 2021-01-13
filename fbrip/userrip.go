@@ -58,8 +58,8 @@ func (u *UserRip) Do(config *ActionConfig){
 		u.GetBasicInfo()
 	}
 	//Make Reaction to acertain post
-	if(config.React.Url!=nil && config.React.Id != ""){
-		u.MakeReaction(config.React.Url, config.React.Id)
+	if( len(config.React.Urls)>0 && len(config.React.Ids)>0){
+		u.MakeReactions(config.React.Urls, config.React.Ids)
 	}
 	//Scrap Urls
 	if len(config.Scrap.Urls)>0{

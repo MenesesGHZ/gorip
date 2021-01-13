@@ -32,28 +32,30 @@ func(u *UserRip) GetBasicInfo(){
 	u.Info.setInfo(bi)
 }
 
-func(u *UserRip) MakeReaction(Url *url.URL, reaction string){
-	//Fixing Url & Making GET request in the publication link
-	Url = fixUrl(Url)
-	response := u.GET(Url)
-	//Handling error. NEED TO BE IMPROVED
-	if response == nil{
-		fmt.Printf("** Error while making GET request to: %s | %s",Url.String(),u.Parameters["email"])
-		return
+func(u *UserRip) MakeReactions(Urls []*url.URL, reactions []string){
+	for i,Url := range Urls{
+		//Fixing Url & Making GET request in the publication link
+		Url = fixUrl(Url)
+		response := u.GET(Url)
+		//Handling error. NEED TO BE IMPROVED
+		if response == nil{
+			fmt.Printf("** Error while making GET request to: %s | %s",Url.String(),u.Parameters["email"])
+			return
+		}
+		//Searching for Reaction Url (it contains specific Query Parameters) 
+		tempUrl := searchReactionPickerUrl(response.Body)
+		//Making GET request for the reaction selection link
+		response = u.GET(tempUrl)
+		//Handling error. NEED TO BE IMPROVED
+		if response == nil{
+			fmt.Printf("** Error while making GET request to: %s | %s\n",Url.String(),u.Parameters["email"])
+			return
+		}
+		//Searching for `ufi/reaction` (it contains specific Query Parameters) 
+		tempUrl = searchUfiReactionUrl(response.Body,reactions[i])
+		//Doing reaction
+		u.GET(tempUrl)
 	}
-	//Searching for Reaction Url (it contains specific Query Parameters) 
-	tempUrl := searchReactionPickerUrl(response.Body)
-	//Making GET request for the reaction selection link
-	response = u.GET(tempUrl)
-	//Handling error. NEED TO BE IMPROVED
-	if response == nil{
-		fmt.Printf("** Error while making GET request to: %s | %s\n",Url.String(),u.Parameters["email"])
-		return
-	}
-	//Searching for `ufi/reaction` (it contains specific Query Parameters) 
-	tempUrl = searchUfiReactionUrl(response.Body,reaction)
-	//Doing reaction
-	u.GET(tempUrl)
 }
 
 //scrap Urls
