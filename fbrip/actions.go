@@ -92,3 +92,6 @@ func (u *UserRip) Scrap(Urls []*url.URL, folderPath string){
 		}
 	}
 }
+
+
+
