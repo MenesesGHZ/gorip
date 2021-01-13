@@ -2,32 +2,17 @@
 	"Users":[
 		{
 			"Parameters":{
-				"email":"email2@domainname.com",
-				"pass":"passpasspass"
+				"email":"mock@email.com",
+				"pass":"super_secret_pass"
 			}	
-		},
-		{
-			"Parameters":{
-				"email":"email@gmail.com",
-				"pass":"passpasspass"
-			}
 		}
 	],
 	"ActionConfig":{
 		"GetBasicInfo":true,
-		"React":[
-			{
-				"Url":"https://mbasic.facebook.com/ohyeahstroke/photos/a.100137525058436/233582818380572/",
-				"Id":"5"
-			},
-			{
-				"Url":"https://mbasic.facebook.com/ohyeahstroke/photos/a.100137525058436/233582818380572/",
-				"Id":"4"
-			}
-		],
+		"React":[],
 		"Scrap":{
-			"Urls":[],
-			"FolderPath":""
+			"Urls":["https://www.facebook.com/"],
+			"FolderPath":"./scraps"
 		}	
 	}
 }

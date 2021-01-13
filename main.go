@@ -6,23 +6,21 @@ import(
 )
 
 func main(){
-	// Reading users and action config from JSON
-	users,actionConfig := fbrip.ReadRip("./rip.json")
-	// Starting sequence 
-	for _,u := range users{
-		// GET for getting part of Cookies
-		u.Sense()
-		fmt.Println("* Sense Completed.")
-		// POST for get cookie-credentials
-		fmt.Println("Ripping...")
-		isLogged := u.Rip()
-		if isLogged {
-			fmt.Println("* Done Ripping.")
-			// Doing task(s) base in ActionConfig. The action configuration is global for all users. FUTURE WORK: Make independent user config from rip.json
-			u.Do(actionConfig)
-			fmt.Printf("\n> User: %s | Gender:[ %s ] Birthday:[ %s ]\n",u.Info.Name,u.Info.Gender,u.Info.Birthday)
-			fmt.Printf("* Actions Completed for -> %s\n\n",u.Parameters["email"])
-		}
-	}
+// Reading Users and Action configuration from JSON
+users,actionConfig := fbrip.ReadRip("./rip.json")
+
+// Main Loop 
+for _,user := range users{
+  // Login sequence
+  user.Sense()
+  isLogged := user.Rip()
+  if isLogged {    
+    user.Do(actionConfig)
+    
+    fmt.Printf("\n> User: %s | Gender:[ %s ] Birthday:[ %s ]\n",user.Info.Name,user.Info.Gender,user.Info.Birthday)
+    fmt.Printf("* Actions Completed for -> %s\n\n",user.Parameters["email"])
+   }
+
+}
 }
 
