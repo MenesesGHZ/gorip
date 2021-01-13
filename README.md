@@ -1,4 +1,9 @@
+<div align="center" width="100%">
+  <img src="./assets/reaper.png" align="center" width="auto" height="auto">
+</div>
+
 # Gorip v1.0
+
 #### It is a tool for login with multi-accounts into Facebook and commit basic interactions:
  - Make multi-reactions given a postURLs and a reactionIDs.
  - Get basic information from the user logged.
@@ -43,6 +48,20 @@ for i,user := range users{
 
 ```
 ### Make multiple Reactions in multiple accounts
+
+<div align="center" width="100%">
+  <img src="./assets/reactions.png" align="center" width="500px" height="auto">
+</div>
+
+The reactions Id are the same that Facebook provides and are listed below:
+- "1" -> Like
+- "2" -> Love
+- "3" -> Care
+- "4" -> Haha
+- "5" -> Wow
+- "6" -> Sad 
+- "7" -> Angry
+
 ```go
 //Create usersRip
 users := []*fbrip.UserRip{
@@ -96,7 +115,7 @@ if isLogged {
   user.Do(actionConfig)
 }
 ```
-### Doing the same thing than before, but with rip.json
+### Doing the same thing as before, but with rip.json
 ```go
 // Reading users and action config from JSON
 users,actionConfig := fbrip.ReadRip("./rip.json")
@@ -115,37 +134,8 @@ for _,user := range users{
 }
 ```
 #### rip.json template
-```json
-{
-	"Users":[
-	{
-		"Parameters":{
-			"email":"someFacebookEmail_1@domain.com",
-				"pass":"super_secret_password"
-		}	
-	},
-	{
-		"Parameters":{
-			"email":"someFacebookEmail@domain.com",
-			"pass":"super_secret_password"
-		}
-	}
-	],
-	"ActionConfig":{
-		"GetBasicInfo":true,
-		"React":[
-		{
-			"Url":"",
-			"Id":""
-		}
-		],
-		"Scrap":{
-			"Urls":[],
-			"FolderPath":""
-		}	
-	}
-}
-```
+<a href="https://github.com/MenesesGHZ/gorip/blob/main/README.md">rip.json</a>
+
 ## Future work to implement
 ### Actions:
 - Make post(s) in own Profile Page or given Url(s) 
@@ -168,5 +158,8 @@ If you want to contact me here is my email: <a href="mail:gerardo.meneses.hz@gma
 
 
 ## Thanks to
-- My account that has been banned for multiple testing requests. Rest in peace.
-<img src="">
+- My secondary account that has been banned for multiple testing requests. Rest in peace.
+
+<div align="center" width="100%">
+  <img src="./assets/result.png" align="center" width="450px" height="auto">
+</div>
