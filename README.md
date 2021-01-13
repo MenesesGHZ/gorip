@@ -1,9 +1,12 @@
-# Gorip v1.0
 
 <div align="center" width="100%">
   <img src="./assets/reaper.png" align="center" width="auto" height="auto">
+   <h1 align="center">Gorip v1.0</h1>
 </div>
-<br>
+<p align="center">
+	<a><img src="https://img.shields.io/badge/Version-1.0.0-green.svg" alt="Version"></a>
+	<a><img src="https://img.shields.io/badge/Made%20with-Go-blue.svg" alt="Go"></a>
+</p>
 
 #### It is a tool for login with multi-accounts into Facebook and commit basic interactions:
  - Make multi-reactions given a postURLs and a reactionIDs.
