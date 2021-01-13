@@ -52,7 +52,7 @@ func (u *UserRip) Rip() bool{
 	return false
 }
 
-func (u *UserRip) Do(config *ActionConfig){
+func (u *UserRip) Do(config ActionConfig){
 	//Getting Basic Info
 	if(config.GetBasicInfo){
 		u.GetBasicInfo()
