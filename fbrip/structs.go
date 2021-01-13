@@ -32,9 +32,9 @@ type ScrapStruct struct{
 }
 
 //Creates
-func CreateScrap(path string, urls []string) ScrapStruct{
+func CreateScrap(path string, urls []string) *ScrapStruct{
 	parsedUrls := parseUrls(urls)
-	return ScrapStruct{
+	return &ScrapStruct{
 		Urls:parsedUrls,
 		FolderPath:path,
 	}
