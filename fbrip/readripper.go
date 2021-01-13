@@ -26,7 +26,6 @@ func ReadRip(path string) ([]*UserRip, *ActionConfig){
 }
 
 //func WriteRip(path string)
-
 func readUsers(users interface{}) []*UserRip{
 	var us []*UserRip
 	for _,user := range users.([]interface{}){
@@ -105,20 +104,39 @@ func readActionConfigPost(pI interface{}) PostStruct{
 }
 
 func readActionConfigReact(rI interface{}) ReactStruct{
-	r  := make(map[string]string)
-	rI = rI.(map[string]interface{})
-	for k, v := range rI.(map[string]interface{}){
+	rI = rI.([]interface{})
+	var urls []*url.URL
+	var ids []string
+	for _, v := range rI.([]interface{}){
 		switch vv := v.(type) {
-		case string:
-			r[k] = vv
+		case interface{}:
+			for k,m := range vv.(map[string]interface{}){
+				switch mm := m.(type){
+					case string:
+						if k=="Url"{
+							tempUrl,err := url.Parse(mm)
+							if err!=nil{
+								panic("Error while parsing url in `ActionConfig > React`")
+							}
+							urls = append(urls,tempUrl)
+						}
+						if k=="Id"{
+							ids = append(ids,mm)
+						}
+					default:
+						panic("VALUES MUST TYPE STRING `ActionConfig > React > {Url:string,Id:string}`. ")
+					}
+				}
 		default:
 			panic("Error while reading `ActionConfig > React` in JSON")
 		}
 	}
-	url,_ := url.Parse(r["Url"])
+	if(len(ids) != len(urls)){
+		panic("IDs and Urls must have the same length")
+	}
 	return ReactStruct{
-		Url:url,
-		Id:r["Id"],
+		Urls:urls,
+		Ids:ids,
 	}
 }
 
