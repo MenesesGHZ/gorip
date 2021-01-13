@@ -9,9 +9,9 @@
 </p>
 
 #### It is a tool for login with multi-accounts into Facebook and commit basic interactions:
- - Make multi-reactions given a postURLs and a reactionIDs.
+ - Make multi-reactions given Facebook Post URLs and Reaction IDs.
  - Get basic information from the user logged.
- - Multi-Scrap given facebookURLs.
+ - Multi-Scrap given Facebook URLs.
  #### Without the need of Web Browser !!!
 
 ## Example Usage
@@ -21,7 +21,7 @@ import "github.com/menesesghz/gorip/fbrip"
 ```
 ### Login into Facebook
 ```go
-//Create usersRip
+//Create a UsersRip slice
 users := []*fbrip.UserRip{
     fbrip.CreateUser("mockuser@domainname.top","super_secret_pass"),
     fbrip.CreateUser("mockuser2@domainname.top","super_secret_pass"),
@@ -82,7 +82,7 @@ urls = []string{
 }
 reactionIds = []string{"1","7"}
 
-// Making action config
+// Making action configuration
 actionConfig := fbrip.ActionConfig{React: fbrip.CreateReact(reactionsIds,urls),}
 
 //Main Loop
@@ -104,7 +104,7 @@ user.Sense()
 isLogged := user.Rip()
 
 if isLogged {
-  //Defining urls to scraps.
+  //Defining urls to scrap.
   urlSlice := []string{
     "https://www.facebook.com/GolangSociety",
     "https://www.facebook.com/googlemexico/"
@@ -123,7 +123,7 @@ if isLogged {
 ```
 ### Doing the same thing as before, but with rip.json
 ```go
-// Reading users and action config from JSON
+// Reading Users and Action configuration from JSON
 users,actionConfig := fbrip.ReadRip("./rip.json")
 
 // Main Loop 
@@ -140,31 +140,31 @@ for _,user := range users{
 }
 ```
 #### rip.json template
-<a href="https://github.com/MenesesGHZ/gorip/blob/main/README.md">rip.json</a>
+<a href="https://github.com/MenesesGHZ/gorip/blob/main/rip.json">rip.json</a>
 
 ## Future work to implement
 ### Actions:
 - Make post(s) in own Profile Page or given Url(s) 
 - Send Random Friend Requests
-- Make Comment(s) for a given postUrl
-- Have more ideas...
+- Make Comment(s) for given Facebook post Url(s)
+- And more...
 ### Features:
 - Create Facebook user without the need of web browser. (maybe)
 ### New packages:
 - instarip (Instagram)
 - twtrip (Twitter)
-- gmailrip (Gmail)
+- gmailrip (Gmail) (maybe)
 
 ## About The Project
-This project is the evidence for my first serius try to Go language. I wanted to make something with the language that challenges me. As you can see the code it is not perfect, and it can be optimized a lot. If you are interest in improving the project, to add it new cool functions or whatever. I invite you to send me a message and see what we can do. I am widely open to add colaborators to make this project better, and also for any suggestions or proposals.
+This project is the evidence for my first serious try to Go language. I wanted to make something with it that challenges me. As you can see the code is not perfect, and it can be optimized a lot. If you are interest in improving the project, to add new cool functions or whatever. I invite you to send me a message and see what we can do. I am widely open to add colaborators to make this project better. Also I if you have any suggestion, proposal, or something that you would like to use in this package, please let me know.
 
 ## About Me
 A Computer Science Student at CETYS.
-If you want to contact me here is my email: <a href="mail:gerardo.meneses.hz@gmail.com">gerardo.meneses.hz@gmail.com </a>
+If you want to contact me here is my email: <a href="mail:gerardo.meneses.hz@gmail.com">gerardo.meneses.hz@gmail.com</a>
 
 
 ## Thanks to
-- My secondary account that has been banned for multiple testing requests. Rest in peace.
+- My secondary account that has been banned for multiple testing requests. Rest in peace. For now...
 
 <div align="center" width="100%">
   <img src="./assets/result.png" align="center" width="450px" height="auto">
