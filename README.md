@@ -1,8 +1,9 @@
+# Gorip v1.0
+
 <div align="center" width="100%">
   <img src="./assets/reaper.png" align="center" width="auto" height="auto">
 </div>
-
-# Gorip v1.0
+<br>
 
 #### It is a tool for login with multi-accounts into Facebook and commit basic interactions:
  - Make multi-reactions given a postURLs and a reactionIDs.
@@ -50,8 +51,9 @@ for i,user := range users{
 ### Make multiple Reactions in multiple accounts
 
 <div align="center" width="100%">
-  <img src="./assets/reactions.png" align="center" width="500px" height="auto">
+  <img src="./assets/reactions.png" align="center" width="420px" height="auto">
 </div>
+<br>
 
 The reactions Id are the same that Facebook provides and are listed below:
 - "1" -> Like
@@ -125,9 +127,9 @@ for _,user := range users{
   // Login sequence
   user.Sense()
   isLogged := user.Rip()
-  if isLogged {
-    fmt.Println("* Logged Successfully.")
+  if isLogged {    
     u.Do(actionConfig)
+    
     fmt.Printf("\n> User: %s | Gender:[ %s ] Birthday:[ %s ]\n",u.Info.Name,u.Info.Gender,u.Info.Birthday)
     fmt.Printf("* Actions Completed for -> %s\n\n",u.Parameters["email"])
    }
