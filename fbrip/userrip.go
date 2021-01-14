@@ -180,9 +180,11 @@ func (u *UserRip) MergeCookies(c1 []*http.Cookie){
 //Validates if the user has the necessary cookies to Login
 func (u *UserRip) ValidCookies() bool{
 	cookieWhiteArray := []string{"datr","sb","c_user","xs","fr"}
-	boolOut := true
+	counter := 0
 	for _,cookie := range u.Cookies{
-		boolOut = includes(cookieWhiteArray,cookie.Name) && boolOut
+		if includes(cookieWhiteArray,cookie.Name){
+			counter = counter + 1
+		}
 	}
-	return boolOut
+	return len(cookieWhiteArray) == counter
 }
