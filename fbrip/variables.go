@@ -7,4 +7,3 @@ var CookieNames = []string{
 	"xs",
 	"fr",
 }
-
