@@ -68,7 +68,7 @@ func (r *ReactStruct) Checks() bool {
 	}
 
 	for id := range r.Ids {
-		boolOut = (string(id) != "" && boolOut)
+		boolOut = (fmt.Sprint(id) != "" && boolOut)
 	}
 
 	return boolOut

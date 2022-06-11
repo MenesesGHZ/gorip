@@ -17,9 +17,13 @@ type UserRip struct {
 func CreateUser(email string, pass string) UserRip {
 	parameters := map[string]string{
 		"email": email,
-		"pass":  pass,
-		"lsd":   "", "jazoest": "", "m_ts": "", "li": "",
-		"try_number": "", "unrecognized_tries": "",
+		"pass": pass,
+		"lsd": "", 
+		"jazoest": "",
+		"m_ts": "",
+		"li": "",
+		"try_number": "",
+		"unrecognized_tries": "",
 		"login": "",
 	}
 	userRip := UserRip{Parameters: parameters}
