@@ -31,7 +31,7 @@ func searchParamsForUser(body io.Reader, u *UserRip) {
 		value, vOk := s.Attr("value")
 		if nOk && vOk {
 			for _, key := range u.GetParameterKeys() {
-				if key == value {
+				if key == name {
 					u.Parameters[name] = value
 					break
 				}

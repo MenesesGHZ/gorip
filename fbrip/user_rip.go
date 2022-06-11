@@ -6,18 +6,23 @@ import (
 	"net/http/cookiejar"
 	"net/url"
 	"strings"
+	"strconv"
 )
 
 type UserRip struct {
+	Email	   string
+	Password   string
 	Parameters map[string]string
-	Cookies    []*http.Cookie
+	Client 	   *http.Client
 	Info       InfoStruct
 }
 
-func CreateUser(email string, pass string) UserRip {
+func NewUserRip(email string, password string) UserRip {
+	cookieJar, _ := cookiejar.New(nil)
+	client := &http.Client{Jar: cookieJar}
 	parameters := map[string]string{
 		"email": email,
-		"pass": pass,
+		"pass": password,
 		"lsd": "", 
 		"jazoest": "",
 		"m_ts": "",
@@ -26,34 +31,67 @@ func CreateUser(email string, pass string) UserRip {
 		"unrecognized_tries": "",
 		"login": "",
 	}
-	userRip := UserRip{Parameters: parameters}
+	userRip := UserRip{
+		Parameters: parameters,
+		Email: email,
+		Password: password,
+		Client: client,
+	}
 	return userRip
 }
 
-func (u *UserRip) Sense() {
-	// Making GET request for https://mbasic.facebook.com/
-	URL_struct, _ := url.Parse("https://mbasic.facebook.com/")
-	response := u.GET(URL_struct)
+var FacebookUrl, _ = url.Parse("https://www.facebook.com/")
+var BasicFacebookUrl, _ = url.Parse("https://mbasic.facebook.com/")
 
-	//Getting cookies & saving them to user
-	u.MergeCookies(response.Cookies())
-
-	//Parsing html returning an *html.Node. Searching params and adding them to user.
+//Getting first set of cookies and parameters needed for make a login request
+//Cookies Gathered:
+//	- datr				 (e.g. 'vhmkYoqy7RdEbjo_7-CfCB1A')
+//Parameters Gathered:
+//	- jazoest 			 (e.g. 2879)
+//  - li 	  			 (e.g 'vhmkYn8H32beqTnQp3ZeUcq3') 
+//  - login				 (e.g 'Log in')
+//	- lsd 	  			 (e.g 'AVqG3uZN6UE')
+//  - m_ts    			 (e.g 1654921662)
+//	- try_number 		 (e.g 0)
+//	- unrecognized_tries (e.g 0)
+func (u *UserRip) sense() {
+	baseUrl, _ := url.Parse("https://mbasic.facebook.com/")	
+	request, _ := http.NewRequest("GET", baseUrl.String(), nil)
+	setHeaders(request, "", -1)
+	response, _ := u.Client.Do(request)
 	defer response.Body.Close()
 	searchParamsForUser(response.Body, u)
 }
 
+
+//Login workflow; Setting policy for handling redirects by returning `http.ErrUseLastResponse` 
+//to avoid making next request automatically since is no needed for login.
+//Cookies Gathered:
+//	- sb	 (e.g. 'mT-kYiYOVgO1REEuVoN3QIkt')
+//	- c_user (e.g. 100008137277101)
+//	- xs	 (e.g. '3%3AgAfz50LpTd4C6A%3A2%3A1654931354%3A-1%3A2298')
+//  - fr	 (e.g. '0z1tHKUHfVz6RQcyW.AWXxkBqxuktzL1QQzfdJ4Z_ZeQ4.BipD-a.pb.AAA.0.0.BipD-a.AWUAUnp-IxI')
 func (u *UserRip) Rip() bool {
-	URL_struct, _ := url.Parse("https://mbasic.facebook.com/login/device-based/regular/login/")
-	//Starting Login Process
-	loginRequest := u.ripPhase1(URL_struct)
-	if u.ValidCookies() {
-		u.ripPhase2(loginRequest)
-		u.ripPhase3()
-		return true
+	u.sense()
+	loginUrl, _ := url.Parse("https://mbasic.facebook.com/login/device-based/regular/login/")
+	parameters := u.GetParametersAsUrlValues()
+	request, _ := http.NewRequest("POST", loginUrl.String(), strings.NewReader(parameters.Encode()))
+	setHeaders(request, "application/x-www-form-urlencoded;", len(parameters.Encode()))
+	u.Client.CheckRedirect = func(request *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
 	}
-	fmt.Printf("** Error while ripping to user: %s\n", u.Parameters["email"])
-	return false
+	response, _ := u.Client.Do(request)
+	response.Body.Close()
+	u.Client.CheckRedirect = nil
+	fmt.Println(u.ValidCookies())
+	return true
+}
+
+func (u *UserRip) GET(requestUrl *url.URL) *http.Response {
+	request, _ := http.NewRequest("GET", requestUrl.String(), nil)
+	setHeaders(request, "", -1)
+	response, _ := u.Client.Do(request)
+	return response
 }
 
 func (u *UserRip) Do(config *ActionConfig) {
@@ -81,69 +119,6 @@ func (u *UserRip) Do(config *ActionConfig) {
 	}
 }
 
-func (u *UserRip) ripPhase1(URL_struct *url.URL) *http.Request {
-	//Get user's parameters as url.Values type
-	parameters := u.GetParametersAsUrlValues()
-	//Making request to URL with respective parameters & setting its headers
-	request, _ := http.NewRequest("POST", URL_struct.String(), strings.NewReader(parameters.Encode()))
-	setHeaders(request, "application/x-www-form-urlencoded;", len(parameters.Encode()))
-
-	//Injecting cookies and getting Jar to be passed to client
-	jar := u.GetAndInjectCookies(request)
-
-	// Making an HTTP Client and a New Request  &  Saving cookies from  response with [StatusCode = 302]
-	var loginRequest *http.Request
-	client := &http.Client{
-		CheckRedirect: func(request *http.Request, via []*http.Request) error {
-			loginRequest = request
-			return http.ErrUseLastResponse
-		},
-		Jar: jar,
-	}
-	//Doing POST request & getting a response with [StatusCode = 302]
-	response, _ := client.Do(request)
-	response.Body.Close()
-	//Merging response cookies to user
-	u.MergeCookies(response.Cookies())
-
-	return loginRequest
-}
-
-func (u *UserRip) ripPhase2(loginRequest *http.Request) *http.Response {
-	//Injecting cookies
-	jar := u.GetAndInjectCookies(loginRequest)
-	//Making http client
-	client := &http.Client{Jar: jar}
-	//Doing POST request & getting a response with [StatusCode = 200]
-	response, _ := client.Do(loginRequest)
-	response.Body.Close()
-
-	return response
-}
-
-func (u *UserRip) ripPhase3() *http.Response {
-	//URL To submit the cancelation of `sign in with a touch`
-	URL_struct, _ := url.Parse("https://mbasic.facebook.com/login/save-device/cancel/?flow=interstitial_nux&nux_source=regular_login")
-	//Making GET Request and Closing Body Response
-	response := u.GET(URL_struct)
-	response.Body.Close()
-
-	return response
-}
-
-func (u *UserRip) GET(URL_struct *url.URL) *http.Response {
-	//Making new http GET request
-	request, _ := http.NewRequest("GET", URL_struct.String(), nil)
-	setHeaders(request, "", -1)
-	//Injecting cookies
-	jar := u.GetAndInjectCookies(request)
-	//Making http client
-	client := &http.Client{Jar: jar}
-	//Doing GET request
-	response, _ := client.Do(request)
-	return response
-}
-
 func (u *UserRip) GetParametersAsUrlValues() url.Values {
 	// Setting user's parameters
 	parameters := url.Values{}
@@ -161,35 +136,33 @@ func (u *UserRip) GetParameterKeys() []string {
 	return keys
 }
 
-func (u *UserRip) GetAndInjectCookies(request *http.Request) *cookiejar.Jar {
-	//Adding cookies to Jar
-	jar, _ := cookiejar.New(nil)
-	jar.SetCookies(request.URL, u.Cookies)
-
-	//Adding cookies to Request
-	for _, cookie := range u.Cookies {
-		request.AddCookie(cookie)
-	}
-	return jar
-}
-
-func (u *UserRip) MergeCookies(c1 []*http.Cookie) {
-	for _, cookie := range c1 {
-		if !includesCookie(u.Cookies, cookie) {
-			u.Cookies = append(u.Cookies, cookie)
-		}
-	}
-}
-
 //Validates if the user has the necessary cookies to login.
 //Coockies = "datr", "sb", "c_user", "xs", "fr"
 func (u *UserRip) ValidCookies() bool {
 	counter := 0
-	for _, cookie := range u.Cookies {
+	for _, cookie := range u.Client.Jar.Cookies(FacebookUrl) {
 		switch cookie.Name {
 		case "datr", "sb", "c_user", "xs", "fr":
 			counter += 1
 		}
 	}
 	return counter == 5
+}
+
+
+func setHeaders(request *http.Request, contentType string, paramsLength int) {
+	//Setting default headers
+	request.Header.Set("Host", request.URL.Host)
+	request.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0")
+	request.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+	request.Header.Set("Accept-Language", "en-US,en;q=1.0")
+	request.Header.Set("Connection", "close")
+	request.Header.Set("Upgrade-Insecure-Requests", "1")
+
+	//Setting parameters if POST request
+	if request.Method == "POST" {
+		request.Header.Set("Content-Type", contentType)
+		request.Header.Set("Content-Length", strconv.Itoa(paramsLength))
+		request.Header.Set("Origin", request.URL.String())
+	}
 }

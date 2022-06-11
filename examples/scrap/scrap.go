@@ -17,7 +17,7 @@ func main() {
 		if isLogged {
 			user.Do(actionConfig)
 			fmt.Printf("\n> User: %s | Gender:[ %s ] Birthday:[ %s ]\n", user.Info.Name, user.Info.Gender, user.Info.Birthday)
-			fmt.Printf("* Actions Completed for -> %s\n\n", user.Parameters["email"])
+			fmt.Printf("* Actions Completed for -> %s\n\n", user.Email)
 		}
 	}
 }
