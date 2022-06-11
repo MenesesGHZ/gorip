@@ -30,8 +30,11 @@ func searchParamsForUser(body io.Reader, u *UserRip) {
 		name, nOk := s.Attr("name")
 		value, vOk := s.Attr("value")
 		if nOk && vOk {
-			if includes(u.GetParameterKeys(), name) {
-				u.Parameters[name] = value
+			for _, key := range u.GetParameterKeys() {
+				if key == value {
+					u.Parameters[name] = value
+					break
+				}
 			}
 		}
 	})
@@ -52,14 +55,13 @@ func searchBasicInfo(body io.Reader) map[string]string {
 		hrefValue, hOk := a.Attr("href")
 		hUrl, _ := url.Parse(hrefValue)
 		if hOk {
-
 			//Getting Query Parameters from `hUrl`
 			v := hUrl.Query()
-			if includes(searchList, v.Get("edit")) {
-				key := strings.Title(v.Get("edit"))
-
-				// a < span < div < td - td > div > InfoAttribute
-				bi[key] = a.Parent().Parent().Parent().Next().Children().Text()
+			for _, element := range searchList {
+				if element == v.Get("edit"){
+					key := strings.Title(v.Get("edit"))
+					bi[key] = a.Parent().Parent().Parent().Next().Children().Text()
+				}
 			}
 		}
 	})
