@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"strings"
 	"strconv"
+//	"io"
 )
 
 type UserRip struct {
@@ -40,9 +41,6 @@ func NewUserRip(email string, password string) UserRip {
 	return userRip
 }
 
-var FacebookUrl, _ = url.Parse("https://www.facebook.com/")
-var BasicFacebookUrl, _ = url.Parse("https://mbasic.facebook.com/")
-
 //Getting first set of cookies and parameters needed for make a login request
 //Cookies Gathered:
 //	- datr				 (e.g. 'vhmkYoqy7RdEbjo_7-CfCB1A')
@@ -63,7 +61,6 @@ func (u *UserRip) sense() {
 	searchParamsForUser(response.Body, u)
 }
 
-
 //Login workflow; Setting policy for handling redirects by returning `http.ErrUseLastResponse` 
 //to avoid making next request automatically since is no needed for login.
 //Cookies Gathered:
@@ -83,7 +80,6 @@ func (u *UserRip) Rip() bool {
 	response, _ := u.Client.Do(request)
 	response.Body.Close()
 	u.Client.CheckRedirect = nil
-	fmt.Println(u.ValidCookies())
 	return true
 }
 
@@ -120,7 +116,6 @@ func (u *UserRip) Do(config *ActionConfig) {
 }
 
 func (u *UserRip) GetParametersAsUrlValues() url.Values {
-	// Setting user's parameters
 	parameters := url.Values{}
 	for param := range u.Parameters {
 		parameters.Set(param, u.Parameters[param])

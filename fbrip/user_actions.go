@@ -36,7 +36,7 @@ func (u *UserRip) GetBasicInfo() {
 func (u *UserRip) MakeReactions(Urls []*url.URL, reactions []string) {
 	for i, Url := range Urls {
 		//Fixing Url & Making GET request in the publication link
-		Url = fixUrl(Url)
+		transformUrlToBasicFacebook(Url)
 		response := u.GET(Url)
 		//Handling error. NEED TO BE IMPROVED
 		if response == nil {
@@ -165,20 +165,4 @@ func (r *ReactStruct) Checks() bool {
 	}
 
 	return boolOut
-}
-
-func parseUrls(urls []string) []*url.URL {
-	//Slice of parsed urls
-	var Urls []*url.URL
-
-	//Parsing urls
-	for i, Url := range urls {
-		tempUrl, err := url.Parse(Url)
-		if err != nil {
-			fmt.Printf("Error while parsing #%d -> %s\nIt was omitted.\n", i, Url)
-			continue
-		}
-		Urls = append(Urls, tempUrl)
-	}
-	return Urls
 }
