@@ -20,15 +20,15 @@ func transformUrlToFacebook(baseUrl *url.URL){
 	baseUrl.Host = FacebookUrl.Host
 }
 
-func parseUrls(urls []string) []*url.URL {
-	var Urls []*url.URL
-	for i, Url := range urls {
-		tempUrl, err := url.Parse(Url)
+func parseUrls(rawUrls []string) []*url.URL {
+	var parsedUrls []*url.URL
+	for i, rawUrl := range rawUrls {
+		parsedUrl, err := url.Parse(rawUrl)
 		if err != nil {
-			fmt.Printf("Error while parsing #%d -> %s\nIt was omitted.\n", i, Url)
+			fmt.Printf("Error while parsing #%d -> %s\nIt was omitted.\n", i, rawUrl)
 			continue
 		}
-		Urls = append(Urls, tempUrl)
+		parsedUrls = append(parsedUrls, parsedUrl)
 	}
-	return Urls
+	return parsedUrls
 }

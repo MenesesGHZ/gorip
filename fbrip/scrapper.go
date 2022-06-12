@@ -85,7 +85,7 @@ func searchUfiReactionUrl(body io.Reader, reactId string) *url.URL {
 	var Url *url.URL
 	id, err := strconv.Atoi(reactId)
 	if err != nil {
-		panic("Reaction ID must be string")
+		panic("React ID must be string")
 	}
 	document.Find("tbody tr td a").Each(func(i int, a *goquery.Selection) {
 		hrefValue, hOk := a.Attr("href")

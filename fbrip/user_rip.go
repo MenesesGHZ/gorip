@@ -1,7 +1,6 @@
 package fbrip
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -15,7 +14,7 @@ type UserRip struct {
 	Password   string
 	Parameters map[string]string
 	Client 	   *http.Client
-	Info       InfoStruct
+	Info       UserInfo
 }
 
 func NewUserRip(email string, password string) UserRip {
@@ -83,37 +82,37 @@ func (u *UserRip) Rip() bool {
 	return true
 }
 
-func (u *UserRip) GET(requestUrl *url.URL) *http.Response {
+func (u *UserRip) GetRequest(requestUrl *url.URL) *http.Response {
 	request, _ := http.NewRequest("GET", requestUrl.String(), nil)
 	setHeaders(request, "", -1)
 	response, _ := u.Client.Do(request)
 	return response
 }
 
-func (u *UserRip) Do(config *ActionConfig) {
-	//Getting Basic Info
-	if config.GetBasicInfo {
-		u.GetBasicInfo()
-	}
-	//Make Reaction to acertain post
-	if config.React.Checks() {
-		u.MakeReactions(config.React.Urls, config.React.Ids)
-	}
-	//Scrap Urls
-	if len(config.Scrap.Urls) > 0 {
-		u.Scrap(config.Scrap.Urls, config.Scrap.FolderPath)
-	}
-	if config.Post.Url != nil && config.Post.Content != "" {
-		//TO DEVELOP
-		fmt.Println("`fbrip` for the moment does not contain logic for posting :( ")
-		fmt.Println("comming soon...")
-	}
-	if config.Comment.Url != nil && config.Comment.Content != "" {
-		//TO DEVELOP
-		fmt.Println("`fbrip` for the moment does not contain logic for comment :( ")
-		fmt.Println("comming soon...")
-	}
-}
+//func (u *UserRip) Do(config *ActionConfig) {
+//	//Getting Basic Info
+//	if config.GetBasicInfo {
+//		u.GetBasicInfo()
+//	}
+//	//Make React to acertain post
+//	if len(config.Reactions) > 0{
+//		u.DoReaction(config.React.Urls, config.React.Ids)
+//	}
+//	//Scrap Urls
+//	if len(config.Scraps) > 0 {
+//		u.Scrap(config.Scrap, config.Scrap.OutputFolderPath)
+//	}
+//	if config.Publicate.Url != nil && config.Publicate.Content != "" {
+//		//TO DEVELOP
+//		fmt.Println("`fbrip` for the moment does not contain logic for posting :( ")
+//		fmt.Println("comming soon...")
+//	}
+//	if config.Comment.Url != nil && config.Comment.Content != "" {
+//		//TO DEVELOP
+//		fmt.Println("`fbrip` for the moment does not contain logic for comment :( ")
+//		fmt.Println("comming soon...")
+//	}
+//}
 
 func (u *UserRip) GetParametersAsUrlValues() url.Values {
 	parameters := url.Values{}

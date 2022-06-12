@@ -6,7 +6,7 @@ import (
 )
 
 func TestReadFile(t *testing.T) {
-    payload, err := ReadRip("./testresources/rip1.json")
+    payload, err := ReadRip("../examples/rip.json")
     if err != nil {
         t.Errorf("Error while trying to read json payload")
     }

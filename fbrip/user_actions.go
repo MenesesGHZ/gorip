@@ -9,55 +9,96 @@ import (
 	"bytes"
 )
 
+type Action interface {
+	React | Publicate | Comment | Scrap
+}
+
+type React struct { // ReactStruct
+	Id string
+	Post *Post
+}
+
+type Publicate struct { // PostStruct
+	Url *url.URL
+}
+
+type Comment struct { // CommentStruct
+	Content string
+	Post *Post
+}
+
+type Post struct {
+	Url *url.URL
+}
+
+type Scrap struct { // ScrapStruct
+	Page *url.URL
+	OutputFolderPath string
+	NamePrefix string
+}
+
+func (u *UserRip) Do(action Action){
+	fmt.Println(action)
+}
+
+//type ActionConfig struct {
+//	GetBasicInfo bool
+//	React        ReactStruct
+//	Publicate         PostStruct
+//	Comment      CommentStruct
+//	Scrap        ScrapStruct
+//}
+
 type ActionConfig struct {
 	GetBasicInfo bool
-	React        ReactStruct
-	Post         PostStruct
-	Comment      CommentStruct
-	Scrap        ScrapStruct
+	Reactions []React
+	Publications []Publicate
+	Comments []Comment
+	Scraps []Scrap
 }
 
-// ACTIONS
+type UserInfo struct {
+	Name     string
+	Birthday string
+	Gender   string
+}
+
 func (u *UserRip) GetBasicInfo() {
-	// Making GET request
-	Url, _ := url.Parse("https://mbasic.facebook.com/profile.php?v=info")
-	response := u.GET(Url)
-	//Handling error. NEED TO BE IMPROVED
+	profileUrl, _ := url.Parse("https://mbasic.facebook.com/profile.php?v=info")
+	response := u.GetRequest(profileUrl)
 	if response == nil {
-		fmt.Printf("** Error while making GET request to: %s | %s\n", Url.String(), u.Email)
+		fmt.Printf("** Error while making GET request to: %s | %s\n", profileUrl.String(), u.Email)
 		return
 	}
-	// Searching for user basic info -> {Name:,Birthday:,Gender:}
-	bi := searchBasicInfo(response.Body)
-	//Setting basic info for user
-	u.Info.setInfo(bi)
+	basicInfoMap := searchBasicInfo(response.Body)
+	u.Info.setInfo(basicInfoMap)
 }
 
-func (u *UserRip) MakeReactions(Urls []*url.URL, reactions []string) {
-	for i, Url := range Urls {
-		//Fixing Url & Making GET request in the publication link
-		transformUrlToBasicFacebook(Url)
-		response := u.GET(Url)
-		//Handling error. NEED TO BE IMPROVED
-		if response == nil {
-			fmt.Printf("** Error while making GET request to: %s | %s", Url.String(), u.Email)
-			return
-		}
-		//Searching for Reaction Url (it contains specific Query Parameters)
-		tempUrl := searchReactionPickerUrl(response.Body)
-		//Making GET request for the reaction selection link
-		response = u.GET(tempUrl)
-		//Handling error. NEED TO BE IMPROVED
-		if response == nil {
-			fmt.Printf("** Error while making GET request to: %s | %s\n", Url.String(), u.Email)
-			return
-		}
-		//Searching for `ufi/reaction` (it contains specific Query Parameters)
-		tempUrl = searchUfiReactionUrl(response.Body, reactions[i])
-		//Doing reaction
-		u.GET(tempUrl)
-	}
-}
+//func (u *UserRip) DoReaction(Urls []*url.URL, reactions []string) {
+//	for i, Url := range Urls {
+//		//Fixing Url & Making GET request in the publication link
+//		transformUrlToBasicFacebook(Url)
+//		response := u.GetRequest(Url)
+//		//Handling error. NEED TO BE IMPROVED
+//		if response == nil {
+//			fmt.Printf("** Error while making GET request to: %s | %s", Url.String(), u.Email)
+//			return
+//		}
+//		//Searching for React Url (it contains specific Query Parameters)
+//		tempUrl := searchReactionPickerUrl(response.Body)
+//		//Making GET request for the reaction selection link
+//		response = u.GetRequest(tempUrl)
+//		//Handling error. NEED TO BE IMPROVED
+//		if response == nil {
+//			fmt.Printf("** Error while making GET request to: %s | %s\n", Url.String(), u.Email)
+//			return
+//		}
+//		//Searching for `ufi/reaction` (it contains specific Query Parameters)
+//		tempUrl = searchUfiReactionUrl(response.Body, reactions[i])
+//		//Doing reaction
+//		u.GetRequest(tempUrl)
+//	}
+//}
 
 //scrap Urls
 func (u *UserRip) Scrap(Urls []*url.URL, folderPath string) {
@@ -77,7 +118,7 @@ func (u *UserRip) Scrap(Urls []*url.URL, folderPath string) {
 		//Making full path to file
 		fullpath := path.Join(folderPath, string(rs))
 		//Getting response from Url
-		response := u.GET(Url)
+		response := u.GetRequest(Url)
 		if response == nil {
 			fmt.Printf("** Error while making GET request to: Scrap > Urls[%d]  |  %s\n", i, u.Email)
 			continue
@@ -98,71 +139,44 @@ func (u *UserRip) Scrap(Urls []*url.URL, folderPath string) {
 }
 
 
-type InfoStruct struct {
-	Name     string
-	Birthday string
-	Gender   string
-}
-
-type ReactStruct struct {
-	Urls []*url.URL
-	Ids  []string
-}
-
-type PostStruct struct {
-	Url     *url.URL
-	Content string
-}
-
-type CommentStruct struct {
-	Url     *url.URL
-	Content string
-}
-
-type ScrapStruct struct {
-	Urls       []*url.URL
-	FolderPath string
-}
-
-//Creates
-func CreateScrap(path string, urls []string) *ScrapStruct {
-	parsedUrls := parseUrls(urls)
-	return &ScrapStruct{
-		Urls:       parsedUrls,
-		FolderPath: path,
+func NewScrap(pageRawUrl string, outputFolderPath string, namePrefix string) *Scrap {
+	var scrap *Scrap
+	parsedUrl, err := url.Parse(pageRawUrl)
+	if err != nil {
+		panic("Error while parsing url")
 	}
+	scrap.Page = parsedUrl
+	scrap.OutputFolderPath = outputFolderPath
+	scrap.NamePrefix = namePrefix
+	return scrap
 }
 
-func CreateReact(ids []string, urls []string) ReactStruct {
-	if len(ids) != len(urls) {
-		panic("IDs length != URLs length. Must have the same length")
-	}
-	parsedUrls := parseUrls(urls)
-	return ReactStruct{
-		Urls: parsedUrls,
-		Ids:  ids,
-	}
+func NewReaction(id string, post *Post) *React {
+	var react *React
+	react.Id = id
+	react.Post = post
+	return react
 }
 
-//Setters for Structs
-func (i *InfoStruct) setInfo(basicInfo map[string]string) {
+func NewPost(rawUrl string) *Post {
+	var post *Post
+	parsedUrl, err := url.Parse(rawUrl)
+	if err != nil {
+		panic("Error while parsing url")
+	}
+	post.Url = parsedUrl
+	return post
+}
+
+func NewComment(content string, post *Post) *Comment{
+	var comment *Comment
+	comment.Content = content
+	comment.Post = post
+	return comment
+}
+
+func (i *UserInfo) setInfo(basicInfo map[string]string) {
 	i.Name = basicInfo["Name"]
 	i.Birthday = basicInfo["Birthday"]
 	i.Gender = basicInfo["Gender"]
-}
-
-//Checks
-func (r *ReactStruct) Checks() bool {
-	boolOut := (len(r.Urls) > 0 && len(r.Ids) > 0)
-	boolOut = (len(r.Urls) == len(r.Urls)) && boolOut
-
-	for _, Url := range r.Urls {
-		boolOut = (Url.String() != "" && boolOut)
-	}
-
-	for id := range r.Ids {
-		boolOut = (fmt.Sprint(id) != "" && boolOut)
-	}
-
-	return boolOut
 }

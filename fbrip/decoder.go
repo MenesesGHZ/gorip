@@ -6,27 +6,27 @@ import (
 )
 
 type RipPayload struct {
-	User User `json:"user"`
-	Actions `json:"actions"`
+	User jsonUser `json:"user"`
+	Actions jsonActions `json:"actions"`
 }
 
-type User struct {
+type jsonUser struct {
 	Email string `json:"email"`
 	Password string `json:"password"`
 }
 
-type Actions struct {
+type jsonActions struct {
 	GetBasicInfo bool `json:"getBasicInfo"`
-	Reactions []Reaction `json:"reactions"`
-	Scrap Scrap `json:"scrap"`
+	Reactions []jsonReaction `json:"reactions"`
+	Scrap jsonScrap `json:"scrap"`
 }
 
-type Reaction struct {
+type jsonReaction struct {
 	ReactionId string `json:"reactionId"`
 	PostUrl string `json:"postUrl"`
 }
 
-type Scrap struct {
+type jsonScrap struct {
 	Urls []string `json:"urls"`
 	OutputFolderPath string `json:"outputFolderPath"`
 	NamePrefix string `json:"namePrefix"`
