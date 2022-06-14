@@ -1,4 +1,4 @@
-package scrap
+package main
 
 import (
 	"fmt"
@@ -6,18 +6,21 @@ import (
 )
 
 func main() {
-	// Reading Users and Action configuration from JSON
-	users, actionConfig := fbrip.ReadRip("./rip.json")
-
-	// Main Loop
-	for _, user := range users {
-		// Login sequence
-		user.Sense()
-		isLogged := user.Rip()
-		if isLogged {
-			user.Do(actionConfig)
-			fmt.Printf("\n> User: %s | Gender:[ %s ] Birthday:[ %s ]\n", user.Info.Name, user.Info.Gender, user.Info.Birthday)
-			fmt.Printf("* Actions Completed for -> %s\n\n", user.Email)
+	user := fbrip.NewUserRip("mock@email.com", "superSecretPassword")
+	isLogged := user.Rip()
+	if isLogged {
+		scrap := fbrip.NewScrap(
+			"https://www.facebook.com/profile.php?id=100008137277101",
+			"./scraps/",
+			"some-name",
+		)
+		success := fbrip.Do(user, scrap)
+		if success {
+			fmt.Println("You have reacted 'WOW :O' to a Rick and Morty image !")
+		} else {
+			fmt.Println("You haven't reacted ;(")
 		}
 	}
+	user.GetBasicInfo()
+	fmt.Println(user)
 }

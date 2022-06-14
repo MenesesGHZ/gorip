@@ -99,31 +99,6 @@ func (u *UserRip) GetRequest(requestUrl *url.URL) *http.Response {
 	return response
 }
 
-//func (u *UserRip) Do(config *ActionConfig) {
-//	//Getting Basic Info
-//	if config.GetBasicInfo {
-//		u.GetBasicInfo()
-//	}
-//	//Make React to acertain post
-//	if len(config.Reactions) > 0{
-//		u.DoReaction(config.React.Urls, config.React.Ids)
-//	}
-//	//Scrap Urls
-//	if len(config.Scraps) > 0 {
-//		u.Scrap(config.Scrap, config.Scrap.OutputFolderPath)
-//	}
-//	if config.Publicate.Url != nil && config.Publicate.Content != "" {
-//		//TO DEVELOP
-//		fmt.Println("`fbrip` for the moment does not contain logic for posting :( ")
-//		fmt.Println("comming soon...")
-//	}
-//	if config.Comment.Url != nil && config.Comment.Content != "" {
-//		//TO DEVELOP
-//		fmt.Println("`fbrip` for the moment does not contain logic for comment :( ")
-//		fmt.Println("comming soon...")
-//	}
-//}
-
 func (u *UserRip) GetParametersAsUrlValues() url.Values {
 	parameters := url.Values{}
 	for param := range u.Parameters {

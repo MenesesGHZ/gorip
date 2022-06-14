@@ -29,9 +29,9 @@ type Comment struct {
 }
 
 type Scrap struct {
-	Page             *url.URL
+	Url             *url.URL
 	OutputFolderPath string
-	NamePrefix       string
+	OutputFilename   string
 }
 
 func (r *React) execute(user *UserRip) bool {
@@ -48,7 +48,11 @@ func (r *React) execute(user *UserRip) bool {
 	}
 	reactionUrl := getReactionUrl(response.Body, r.Id)
 	response.Body.Close()
-	user.GetRequest(reactionUrl)
+	response = user.GetRequest(reactionUrl)
+	if response == nil {
+		return false
+	}
+	response.Body.Close()
 	return true
 }
 
@@ -62,8 +66,35 @@ func (r *Comment) execute(user *UserRip) bool {
 	return true
 }
 
-func (r *Scrap) execute(user *UserRip) bool {
-	fmt.Println("SCRAPPING...")
+func (s *Scrap) execute(user *UserRip) bool {
+	var filename string
+	if s.OutputFilename == "" {
+		filename = fmt.Sprintf("%s_%s_%s.html", s.Url.Host, s.Url.Path, user.Email)
+	}else{
+		filename = fmt.Sprintf("%s.html", s.OutputFilename)
+	}
+	var rs []rune
+	for _, r := range filename {
+		if string(r) == "/" {
+			rs = append(rs, '-')
+		}else{
+			rs = append(rs, r)
+		}
+	}
+	fullpath := path.Join(s.OutputFolderPath, string(rs))
+	response := user.GetRequest(s.Url)
+	if response == nil {
+		return false
+	}
+	if _, err := os.Stat(s.OutputFolderPath); os.IsNotExist(err) {
+		os.Mkdir(s.OutputFolderPath, 0777)
+	}
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(response.Body)
+	err := ioutil.WriteFile(fullpath, buf.Bytes(), 0666)
+	if err != nil {
+		return false
+	}
 	return true
 }
 
@@ -118,61 +149,17 @@ func (u *UserRip) GetBasicInfo() {
 	}
 }
 
-//func (u *UserRip) DoReaction(Urls []*url.URL, reactions []string) {
-//	for i, Url := range Urls {
-//Fixing Url & Making GET request in the publication link
 
-//	}
-//}
-
-//scrap Urls
-func (u *UserRip) Scrap(Urls []*url.URL, folderPath string) {
-	folderPath = path.Clean(folderPath)
-	for i, Url := range Urls {
-		//Making filename string
-		filename := fmt.Sprintf("%s_%s_%s.html", Url.Host, Url.Path, u.Email)
-		//fixing filename. Converting "/" -> "-"
-		var rs []rune
-		for _, r := range filename {
-			if string(r) == "/" {
-				rs = append(rs, '-')
-				continue
-			}
-			rs = append(rs, r)
-		}
-		//Making full path to file
-		fullpath := path.Join(folderPath, string(rs))
-		//Getting response from Url
-		response := u.GetRequest(Url)
-		if response == nil {
-			fmt.Printf("** Error while making GET request to: Scrap > Urls[%d]  |  %s\n", i, u.Email)
-			continue
-		}
-		//Creating folder if it does not exist
-		if _, err := os.Stat(folderPath); os.IsNotExist(err) {
-			os.Mkdir(folderPath, 0777)
-		}
-
-		//Writing in location
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(response.Body)
-		err := ioutil.WriteFile(fullpath, buf.Bytes(), 0666)
-		if err != nil {
-			fmt.Printf("Unable to write file: %v", err)
-		}
-	}
-}
-
-func NewScrap(pageRawUrl string, outputFolderPath string, namePrefix string) *Scrap {
-	var scrap *Scrap
+func NewScrap(pageRawUrl string, outputFolderPath string, outputFilename string) *Scrap {
 	parsedUrl, err := url.Parse(pageRawUrl)
 	if err != nil {
 		panic("Error while parsing url")
 	}
-	scrap.Page = parsedUrl
-	scrap.OutputFolderPath = outputFolderPath
-	scrap.NamePrefix = namePrefix
-	return scrap
+	return &Scrap{
+		Url: parsedUrl,
+		OutputFolderPath: outputFolderPath,
+		OutputFilename: outputFilename,
+	}
 }
 
 func NewReaction(id string, postUrl string) *React {
