@@ -1,15 +1,15 @@
 package fbrip
 
 import (
-    "testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestReadFile(t *testing.T) {
-    payload, err := ReadRip("../examples/rip.json")
-    if err != nil {
-        t.Errorf("Error while trying to read json payload")
-    }
+	payload, err := ReadRip("../examples/rip.json")
+	if err != nil {
+		t.Errorf("Error while trying to read json payload")
+	}
 	assert.Equal(t, "mock@email.com", payload.User.Email)
 	assert.Equal(t, "mock_password", payload.User.Password)
 	assert.Equal(t, true, payload.Actions.GetBasicInfo)

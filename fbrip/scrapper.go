@@ -38,17 +38,17 @@ func searchBasicInfo(body io.Reader) map[string]string {
 	searchList := []string{"birthday", "gender"}
 	basicInfoMap := make(map[string]string)
 	document.Find("div#basic-info a").Each(func(i int, a *goquery.Selection) {
-			hrefValue, hOk := a.Attr("href")
-			hUrl, _ := url.Parse(hrefValue)
-			if hOk {
-				v := hUrl.Query()
-				for _, element := range searchList {
-					if element == v.Get("edit"){
-						key := strings.Title(v.Get("edit"))
-						basicInfoMap[key] = a.Parent().Parent().Parent().Next().Children().Text()
-					}
+		hrefValue, hOk := a.Attr("href")
+		hUrl, _ := url.Parse(hrefValue)
+		if hOk {
+			v := hUrl.Query()
+			for _, element := range searchList {
+				if element == v.Get("edit") {
+					key := strings.Title(v.Get("edit"))
+					basicInfoMap[key] = a.Parent().Parent().Parent().Next().Children().Text()
 				}
 			}
+		}
 	})
 	document.Find("title").Each(func(i int, t *goquery.Selection) {
 		basicInfoMap["Name"] = t.Text()
@@ -57,42 +57,40 @@ func searchBasicInfo(body io.Reader) map[string]string {
 }
 
 // Looking for ActionBar where its patern path is: tbody > tr > td > a
-func searchReactionPickerUrl(body io.Reader) *url.URL {
+func getReactionsPickerUrl(body io.Reader) *url.URL {
 	document, err := goquery.NewDocumentFromReader(body)
 	if err != nil {
 		panic("Error while reading utf-8 enconded HTML")
 	}
-	var Url *url.URL
+	var reactionsPickerUrl *url.URL
 	document.Find("tbody tr td a").Each(func(i int, a *goquery.Selection) {
 		hrefValue, hOk := a.Attr("href")
 		if hOk {
-			hUrl, _ := url.Parse(hrefValue)
-			if hUrl.Path == "/reactions/picker/" {
-				transformUrlToBasicFacebook(hUrl)
+			Url, _ := url.Parse(hrefValue)
+			if Url.Path == "/reactions/picker/" {
+				transformUrlToBasicFacebook(Url)
+				reactionsPickerUrl = Url
 			}
 		}
 	})
-	return Url
+	return reactionsPickerUrl
 }
 
 // Declaring Url & Converting `reactId` to integer
 // Looking for ActionBar where its patern path is: tbody > tr > td > a
-func searchUfiReactionUrl(body io.Reader, reactId string) *url.URL {
+func getReactionUrl(body io.Reader, reactId string) *url.URL {
 	document, err := goquery.NewDocumentFromReader(body)
 	if err != nil {
 		panic("Error while reading utf-8 enconded HTML")
 	}
-	var Url *url.URL
-	id, err := strconv.Atoi(reactId)
-	if err != nil {
-		panic("React ID must be string")
-	}
+	var reactionUrl *url.URL
+	id, _ := strconv.Atoi(reactId)
 	document.Find("tbody tr td a").Each(func(i int, a *goquery.Selection) {
 		hrefValue, hOk := a.Attr("href")
 		if hOk && i == id {
-			Url, _ = url.Parse(hrefValue)
-			transformUrlToBasicFacebook(Url)
+			reactionUrl, _ = url.Parse(hrefValue)
+			transformUrlToBasicFacebook(reactionUrl)
 		}
 	})
-	return Url
+	return reactionUrl
 }

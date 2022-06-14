@@ -5,17 +5,15 @@ import (
 	"net/url"
 )
 
-
 var FacebookUrl, _ = url.Parse("https://www.facebook.com/")
 var BasicFacebookUrl, _ = url.Parse("https://mbasic.facebook.com/")
 
-
-func transformUrlToBasicFacebook(baseUrl *url.URL){
+func transformUrlToBasicFacebook(baseUrl *url.URL) {
 	baseUrl.Scheme = BasicFacebookUrl.Scheme
 	baseUrl.Host = BasicFacebookUrl.Host
 }
 
-func transformUrlToFacebook(baseUrl *url.URL){
+func transformUrlToFacebook(baseUrl *url.URL) {
 	baseUrl.Scheme = FacebookUrl.Scheme
 	baseUrl.Host = FacebookUrl.Host
 }

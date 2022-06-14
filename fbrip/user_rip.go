@@ -4,38 +4,38 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
-	"strings"
 	"strconv"
-//	"io"
+	"strings"
+	//	"io"
 )
 
 type UserRip struct {
-	Email	   string
+	Email      string
 	Password   string
 	Parameters map[string]string
-	Client 	   *http.Client
+	Client     *http.Client
 	Info       UserInfo
 }
 
-func NewUserRip(email string, password string) UserRip {
+func NewUserRip(email string, password string) *UserRip {
 	cookieJar, _ := cookiejar.New(nil)
 	client := &http.Client{Jar: cookieJar}
 	parameters := map[string]string{
-		"email": email,
-		"pass": password,
-		"lsd": "", 
-		"jazoest": "",
-		"m_ts": "",
-		"li": "",
-		"try_number": "",
+		"email":              email,
+		"pass":               password,
+		"lsd":                "",
+		"jazoest":            "",
+		"m_ts":               "",
+		"li":                 "",
+		"try_number":         "",
 		"unrecognized_tries": "",
-		"login": "",
+		"login":              "",
 	}
-	userRip := UserRip{
+	userRip := &UserRip{
 		Parameters: parameters,
-		Email: email,
-		Password: password,
-		Client: client,
+		Email:      email,
+		Password:   password,
+		Client:     client,
 	}
 	return userRip
 }
@@ -45,22 +45,26 @@ func NewUserRip(email string, password string) UserRip {
 //	- datr				 (e.g. 'vhmkYoqy7RdEbjo_7-CfCB1A')
 //Parameters Gathered:
 //	- jazoest 			 (e.g. 2879)
-//  - li 	  			 (e.g 'vhmkYn8H32beqTnQp3ZeUcq3') 
+//  - li 	  			 (e.g 'vhmkYn8H32beqTnQp3ZeUcq3')
 //  - login				 (e.g 'Log in')
 //	- lsd 	  			 (e.g 'AVqG3uZN6UE')
 //  - m_ts    			 (e.g 1654921662)
 //	- try_number 		 (e.g 0)
 //	- unrecognized_tries (e.g 0)
-func (u *UserRip) sense() {
-	baseUrl, _ := url.Parse("https://mbasic.facebook.com/")	
+func (u *UserRip) sense() error {
+	baseUrl, _ := url.Parse("https://mbasic.facebook.com/")
 	request, _ := http.NewRequest("GET", baseUrl.String(), nil)
 	setHeaders(request, "", -1)
-	response, _ := u.Client.Do(request)
+	response, err := u.Client.Do(request)
+	if err != nil {
+		return err
+	}
 	defer response.Body.Close()
 	searchParamsForUser(response.Body, u)
+	return nil
 }
 
-//Login workflow; Setting policy for handling redirects by returning `http.ErrUseLastResponse` 
+//Login workflow; Setting policy for handling redirects by returning `http.ErrUseLastResponse`
 //to avoid making next request automatically since is no needed for login.
 //Cookies Gathered:
 //	- sb	 (e.g. 'mT-kYiYOVgO1REEuVoN3QIkt')
@@ -68,7 +72,10 @@ func (u *UserRip) sense() {
 //	- xs	 (e.g. '3%3AgAfz50LpTd4C6A%3A2%3A1654931354%3A-1%3A2298')
 //  - fr	 (e.g. '0z1tHKUHfVz6RQcyW.AWXxkBqxuktzL1QQzfdJ4Z_ZeQ4.BipD-a.pb.AAA.0.0.BipD-a.AWUAUnp-IxI')
 func (u *UserRip) Rip() bool {
-	u.sense()
+	err := u.sense()
+	if err != nil {
+		return false
+	}
 	loginUrl, _ := url.Parse("https://mbasic.facebook.com/login/device-based/regular/login/")
 	parameters := u.GetParametersAsUrlValues()
 	request, _ := http.NewRequest("POST", loginUrl.String(), strings.NewReader(parameters.Encode()))
@@ -76,7 +83,10 @@ func (u *UserRip) Rip() bool {
 	u.Client.CheckRedirect = func(request *http.Request, via []*http.Request) error {
 		return http.ErrUseLastResponse
 	}
-	response, _ := u.Client.Do(request)
+	response, err := u.Client.Do(request)
+	if err != nil {
+		return false
+	}
 	response.Body.Close()
 	u.Client.CheckRedirect = nil
 	return true
@@ -142,7 +152,6 @@ func (u *UserRip) ValidCookies() bool {
 	}
 	return counter == 5
 }
-
 
 func setHeaders(request *http.Request, contentType string, paramsLength int) {
 	//Setting default headers

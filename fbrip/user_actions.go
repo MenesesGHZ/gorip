@@ -1,60 +1,104 @@
 package fbrip
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"net/url"
 	"os"
 	"path"
-	"bytes"
 )
 
 type Action interface {
-	React | Publicate | Comment | Scrap
+	execute(*UserRip) bool
+	*React | *Publicate | *Comment | *Scrap
 }
 
-type React struct { // ReactStruct
-	Id string
+type React struct {
+	Id   string
 	Post *Post
 }
 
-type Publicate struct { // PostStruct
+type Publicate struct {
 	Url *url.URL
 }
 
-type Comment struct { // CommentStruct
+type Comment struct {
 	Content string
-	Post *Post
+	Post    *Post
+}
+
+type Scrap struct {
+	Page             *url.URL
+	OutputFolderPath string
+	NamePrefix       string
+}
+
+func (r *React) execute(user *UserRip) bool {
+	transformUrlToBasicFacebook(r.Post.Url)
+	response := user.GetRequest(r.Post.Url)
+	if response == nil {
+		return false
+	}
+	reactionsPickerUrl := getReactionsPickerUrl(response.Body)
+	response.Body.Close()
+	response = user.GetRequest(reactionsPickerUrl)
+	if response == nil {
+		return false
+	}
+	reactionUrl := getReactionUrl(response.Body, r.Id)
+	response.Body.Close()
+	user.GetRequest(reactionUrl)
+	return true
+}
+
+func (r *Publicate) execute(user *UserRip) bool {
+	fmt.Println("PUBLICATING...")
+	return true
+}
+
+func (r *Comment) execute(user *UserRip) bool {
+	fmt.Println("COMMENTING...")
+	return true
+}
+
+func (r *Scrap) execute(user *UserRip) bool {
+	fmt.Println("SCRAPPING...")
+	return true
+}
+
+func Do[A Action](user *UserRip, action A) bool {
+	return action.execute(user)
+}
+
+type ActionConfig struct {
+	GetBasicInfo bool
+	Reactions    []React
+	Publications []Publicate
+	Comments     []Comment
+	Scraps       []Scrap
 }
 
 type Post struct {
 	Url *url.URL
 }
 
-type Scrap struct { // ScrapStruct
-	Page *url.URL
-	OutputFolderPath string
-	NamePrefix string
-}
-
-func (u *UserRip) Do(action Action){
-	fmt.Println(action)
-}
-
-//type ActionConfig struct {
-//	GetBasicInfo bool
-//	React        ReactStruct
-//	Publicate         PostStruct
-//	Comment      CommentStruct
-//	Scrap        ScrapStruct
-//}
-
-type ActionConfig struct {
-	GetBasicInfo bool
-	Reactions []React
-	Publications []Publicate
-	Comments []Comment
-	Scraps []Scrap
+func (u *UserRip) Do(actionConfig ActionConfig) {
+	if actionConfig.GetBasicInfo {
+		u.GetBasicInfo()
+	}
+	for _, react := range actionConfig.Reactions {
+		react.execute(u)
+	}
+	for _, publicate := range actionConfig.Publications {
+		publicate.execute(u)
+	}
+	for _, comment := range actionConfig.Comments {
+		comment.execute(u)
+	}
+	for _, scrap := range actionConfig.Scraps {
+		scrap.execute(u)
+	}
 }
 
 type UserInfo struct {
@@ -68,35 +112,16 @@ func (u *UserRip) GetBasicInfo() {
 	response := u.GetRequest(profileUrl)
 	if response == nil {
 		fmt.Printf("** Error while making GET request to: %s | %s\n", profileUrl.String(), u.Email)
-		return
+	} else {
+		basicInfoMap := searchBasicInfo(response.Body)
+		u.Info.setInfo(basicInfoMap)
 	}
-	basicInfoMap := searchBasicInfo(response.Body)
-	u.Info.setInfo(basicInfoMap)
 }
 
 //func (u *UserRip) DoReaction(Urls []*url.URL, reactions []string) {
 //	for i, Url := range Urls {
-//		//Fixing Url & Making GET request in the publication link
-//		transformUrlToBasicFacebook(Url)
-//		response := u.GetRequest(Url)
-//		//Handling error. NEED TO BE IMPROVED
-//		if response == nil {
-//			fmt.Printf("** Error while making GET request to: %s | %s", Url.String(), u.Email)
-//			return
-//		}
-//		//Searching for React Url (it contains specific Query Parameters)
-//		tempUrl := searchReactionPickerUrl(response.Body)
-//		//Making GET request for the reaction selection link
-//		response = u.GetRequest(tempUrl)
-//		//Handling error. NEED TO BE IMPROVED
-//		if response == nil {
-//			fmt.Printf("** Error while making GET request to: %s | %s\n", Url.String(), u.Email)
-//			return
-//		}
-//		//Searching for `ufi/reaction` (it contains specific Query Parameters)
-//		tempUrl = searchUfiReactionUrl(response.Body, reactions[i])
-//		//Doing reaction
-//		u.GetRequest(tempUrl)
+//Fixing Url & Making GET request in the publication link
+
 //	}
 //}
 
@@ -138,7 +163,6 @@ func (u *UserRip) Scrap(Urls []*url.URL, folderPath string) {
 	}
 }
 
-
 func NewScrap(pageRawUrl string, outputFolderPath string, namePrefix string) *Scrap {
 	var scrap *Scrap
 	parsedUrl, err := url.Parse(pageRawUrl)
@@ -151,27 +175,27 @@ func NewScrap(pageRawUrl string, outputFolderPath string, namePrefix string) *Sc
 	return scrap
 }
 
-func NewReaction(id string, post *Post) *React {
-	var react *React
-	react.Id = id
-	react.Post = post
-	return react
+func NewReaction(id string, postUrl string) *React {
+	return &React{
+		Id:   id,
+		Post: newPost(postUrl),
+	}
 }
 
-func NewPost(rawUrl string) *Post {
-	var post *Post
+func newPost(rawUrl string) *Post {
 	parsedUrl, err := url.Parse(rawUrl)
 	if err != nil {
 		panic("Error while parsing url")
 	}
-	post.Url = parsedUrl
-	return post
+	return &Post{
+		Url: parsedUrl,
+	}
 }
 
-func NewComment(content string, post *Post) *Comment{
+func NewComment(content string, postUrl string) *Comment {
 	var comment *Comment
 	comment.Content = content
-	comment.Post = post
+	comment.Post = newPost(postUrl)
 	return comment
 }
 

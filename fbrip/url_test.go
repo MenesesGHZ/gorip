@@ -1,10 +1,9 @@
 package fbrip
 
 import (
-    "testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
-
 
 func TestTransformUrlToBasicFacebook(t *testing.T) {
 	facebookUrl := *FacebookUrl
@@ -20,7 +19,7 @@ func TestTransformUrlToFacebook(t *testing.T) {
 	assert.Equal(t, "www.facebook.com", basicFacebookUrl.Host)
 }
 
-func TestParseUrls(t *testing.T){
+func TestParseUrls(t *testing.T) {
 	rawUrls := []string{
 		"www.facebook.com",
 		"www.facebook.com/this-is-a-random-path",
@@ -28,7 +27,7 @@ func TestParseUrls(t *testing.T){
 		"mbasic.facebook.com",
 		"mbasic.facebook.com/this-is-a-random-path",
 		"mbasic.facebook.com/this-is-a-random-path/?random=query-parameter",
-	} 
+	}
 	parsedUrls := parseUrls(rawUrls)
 	assert.Equal(t, len(rawUrls), len(parsedUrls))
 }
