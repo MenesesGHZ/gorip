@@ -99,11 +99,15 @@ if isLogged {
 - And more...
 ### Features:
 - Create Facebook user without the need of web browser. (maybe)
-### New packages:
+### Things to Improve:
+- Improve code for reading json file. (I was pretty dummie in golang at that time for reading json files lol)
+- Improve fbrip/ code structure in general.
+### New packages (maybe):
 - instarip (Instagram)
 - twtrip (Twitter)
 - gmailrip (Gmail) (maybe)
 - tikrip (TikTok) (maybe)
+
 
 ## About The Project
 This project is the evidence for my first serious try to Go language. I wanted to make something with it that challenges me. As you can see the code is not perfect, and it can be optimized a lot. If you are interest in improving the project, to add new cool functions or whatever. I invite you to send me a message and see what we can do. I am widely open to add colaborators to make this project better. Also I if you have any suggestion, proposal, or something that you would like to use in this package, please let me know.
