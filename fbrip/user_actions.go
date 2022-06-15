@@ -29,7 +29,7 @@ type Comment struct {
 }
 
 type Scrap struct {
-	Url             *url.URL
+	Url              *url.URL
 	OutputFolderPath string
 	OutputFilename   string
 	TransformToBasic bool
@@ -71,14 +71,14 @@ func (s *Scrap) execute(user *UserRip) bool {
 	var filename string
 	if s.OutputFilename == "" {
 		filename = fmt.Sprintf("%s_%s_%s.html", s.Url.Host, s.Url.Path, user.Email)
-	}else{
+	} else {
 		filename = fmt.Sprintf("%s.html", s.OutputFilename)
 	}
 	var rs []rune
 	for _, r := range filename {
 		if string(r) == "/" {
 			rs = append(rs, '-')
-		}else{
+		} else {
 			rs = append(rs, r)
 		}
 	}
@@ -161,9 +161,9 @@ func NewScrap(pageRawUrl string, outputFolderPath string, outputFilename string,
 		panic("Error while parsing url")
 	}
 	return &Scrap{
-		Url: parsedUrl,
+		Url:              parsedUrl,
 		OutputFolderPath: outputFolderPath,
-		OutputFilename: outputFilename,
+		OutputFilename:   outputFilename,
 		TransformToBasic: transformToBasic,
 	}
 }

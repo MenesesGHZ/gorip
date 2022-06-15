@@ -34,7 +34,7 @@ func main() {
 		} else {
 			fmt.Println("Unable to scrap ;(")
 		}
-	}else{
+	} else {
 		fmt.Println("Unable to login ;(")
 	}
 }

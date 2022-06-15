@@ -16,7 +16,7 @@ func main() {
 		} else {
 			fmt.Println("You haven't reacted ;(")
 		}
-	}else{
+	} else {
 		fmt.Println("Unable to login ;(")
 	}
 }
