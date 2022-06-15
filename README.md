@@ -4,7 +4,7 @@
    <h1 align="center">Gorip v1.5</h1>
 </div>
 <p align="center">
-	<a><img src="https://img.shields.io/badge/Version-1.0.0-green.svg" alt="Version"></a>
+	<a><img src="https://img.shields.io/badge/Version-1.5-green.svg" alt="Version"></a>
 	<a><img src="https://img.shields.io/badge/Made%20with-Go-blue.svg" alt="Go"></a>
 </p>
 
@@ -24,7 +24,6 @@ user := fbrip.NewUserRip("mock@email","mockpass"),
 isLogged := user.Rip()
 if isLogged{
     /*... do actions ...*/
-}
 }
 ```
 ### Get Basic Info
@@ -57,7 +56,7 @@ The reactions Id are the same that Facebook provides and are listed below:
 fbrip.NewUser("mock@email","password"),
 isLogged := user.Rip()
 if isLogged {
-	react := fbrip.NewReaction("2", "https://www.facebook.com/RickandMorty/photos/pcb.5282285888534857/5282285578534888/")
+  react := fbrip.NewReaction("2", "https://www.facebook.com/RickandMorty/photos/pcb.5282285888534857/5282285578534888/")
   success := fbrip.Do(user, react)
   if success {
     fmt.Println("You have reacted '<3' to a Rick and Morty image !")
