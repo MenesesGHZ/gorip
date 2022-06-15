@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	//	"io"
 )
 
 type UserRip struct {
@@ -66,7 +65,7 @@ func (u *UserRip) sense() error {
 
 //Login workflow; Setting policy for handling redirects by returning `http.ErrUseLastResponse`
 //to avoid making next request automatically since is no needed for login.
-//Cookies Gathered:
+//Cookies Gathered (minus sense() cookies): 
 //	- sb	 (e.g. 'mT-kYiYOVgO1REEuVoN3QIkt')
 //	- c_user (e.g. 100008137277101)
 //	- xs	 (e.g. '3%3AgAfz50LpTd4C6A%3A2%3A1654931354%3A-1%3A2298')
@@ -84,10 +83,10 @@ func (u *UserRip) Rip() bool {
 		return http.ErrUseLastResponse
 	}
 	response, err := u.Client.Do(request)
-	if err != nil {
+	response.Body.Close()
+	if err != nil || !u.ValidCookies() {
 		return false
 	}
-	response.Body.Close()
 	u.Client.CheckRedirect = nil
 	return true
 }

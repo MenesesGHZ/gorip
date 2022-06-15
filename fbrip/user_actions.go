@@ -32,6 +32,7 @@ type Scrap struct {
 	Url             *url.URL
 	OutputFolderPath string
 	OutputFilename   string
+	TransformToBasic bool
 }
 
 func (r *React) execute(user *UserRip) bool {
@@ -56,14 +57,14 @@ func (r *React) execute(user *UserRip) bool {
 	return true
 }
 
-func (r *Publicate) execute(user *UserRip) bool {
-	fmt.Println("PUBLICATING...")
-	return true
+func (p *Publicate) execute(user *UserRip) bool {
+	fmt.Println("TODO. NEEDED LOGIC. Please create an issue or contact developer.")
+	return false
 }
 
-func (r *Comment) execute(user *UserRip) bool {
-	fmt.Println("COMMENTING...")
-	return true
+func (c *Comment) execute(user *UserRip) bool {
+	fmt.Println("TODO. NEEDED LOGIC. Please create an issue or contact developer.")
+	return false
 }
 
 func (s *Scrap) execute(user *UserRip) bool {
@@ -82,6 +83,9 @@ func (s *Scrap) execute(user *UserRip) bool {
 		}
 	}
 	fullpath := path.Join(s.OutputFolderPath, string(rs))
+	if s.TransformToBasic {
+		transformUrlToBasicFacebook(s.Url)
+	}
 	response := user.GetRequest(s.Url)
 	if response == nil {
 		return false
@@ -145,12 +149,13 @@ func (u *UserRip) GetBasicInfo() {
 		fmt.Printf("** Error while making GET request to: %s | %s\n", profileUrl.String(), u.Email)
 	} else {
 		basicInfoMap := searchBasicInfo(response.Body)
-		u.Info.setInfo(basicInfoMap)
+		u.Info.Name = basicInfoMap["Name"]
+		u.Info.Birthday = basicInfoMap["Birthday"]
+		u.Info.Gender = basicInfoMap["Gender"]
 	}
 }
 
-
-func NewScrap(pageRawUrl string, outputFolderPath string, outputFilename string) *Scrap {
+func NewScrap(pageRawUrl string, outputFolderPath string, outputFilename string, transformToBasic bool) *Scrap {
 	parsedUrl, err := url.Parse(pageRawUrl)
 	if err != nil {
 		panic("Error while parsing url")
@@ -159,6 +164,7 @@ func NewScrap(pageRawUrl string, outputFolderPath string, outputFilename string)
 		Url: parsedUrl,
 		OutputFolderPath: outputFolderPath,
 		OutputFilename: outputFilename,
+		TransformToBasic: transformToBasic,
 	}
 }
 
@@ -184,10 +190,4 @@ func NewComment(content string, postUrl string) *Comment {
 	comment.Content = content
 	comment.Post = newPost(postUrl)
 	return comment
-}
-
-func (i *UserInfo) setInfo(basicInfo map[string]string) {
-	i.Name = basicInfo["Name"]
-	i.Birthday = basicInfo["Birthday"]
-	i.Gender = basicInfo["Gender"]
 }
