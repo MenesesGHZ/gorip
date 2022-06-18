@@ -11,7 +11,7 @@
 #### A tool for login into Facebook and commit basic interactions:
  - Make facebook reaction given an facebook URL.
  - Get basic information from the user logged.
- - Scrap www.facebook.com and mbasic.facebook.com
+ - Scrap www.facebook.com or/and mbasic.facebook.com
 
 ## Example Usage
 ### Import Gorip
@@ -83,8 +83,8 @@ if isLogged {
       "some-name-facebook-mbasic", // if empty string 
       true, // scrap from mbasic.facebook.com
     )
-    fbrip.Do(client, scrap_facebook)
-    fbrip.Do(client, scrap_mbasic)
+    fbrip.Do(user, scrap_facebook)
+    fbrip.Do(user, scrap_mbasic)
 }
 ```
 #### rip.json template (TODO)
