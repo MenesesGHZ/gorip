@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	fmt.Println("Hello :) This is Gorip. Work in progress...")
+	fmt.Println("Hello :) This is Gorip. Feel free to checkout the `examples/` folder for more usage examples.")
 }
