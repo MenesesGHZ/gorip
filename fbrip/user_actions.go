@@ -41,13 +41,13 @@ func (r *React) execute(user *UserRip) bool {
 	if response == nil {
 		return false
 	}
-	reactionsPickerUrl := getReactionsPickerUrl(response.Body)
+	reactionsPickerUrl := GetReactionsPickerUrl(response.Body)
 	response.Body.Close()
 	response = user.GetRequest(reactionsPickerUrl)
 	if response == nil {
 		return false
 	}
-	reactionUrl := getReactionUrl(response.Body, r.Id)
+	reactionUrl := GetReactionUrl(response.Body, r.Id)
 	response.Body.Close()
 	response = user.GetRequest(reactionUrl)
 	if response == nil {
@@ -148,7 +148,7 @@ func (u *UserRip) GetBasicInfo() {
 	if response == nil {
 		fmt.Printf("** Error while making GET request to: %s | %s\n", profileUrl.String(), u.Email)
 	} else {
-		basicInfoMap := searchBasicInfo(response.Body)
+		basicInfoMap := SearchBasicInfo(response.Body)
 		u.Info.Name = basicInfoMap["Name"]
 		u.Info.Birthday = basicInfoMap["Birthday"]
 		u.Info.Gender = basicInfoMap["Gender"]

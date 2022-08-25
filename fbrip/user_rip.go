@@ -54,13 +54,13 @@ func NewUserRip(email string, password string) *UserRip {
 func (u *UserRip) Sense() error {
 	baseUrl, _ := url.Parse("https://mbasic.facebook.com/")
 	request, _ := http.NewRequest("GET", baseUrl.String(), nil)
-	setHeaders(request, "", -1)
+	SetHeaders(request, "", -1)
 	response, err := u.Client.Do(request)
 	if err != nil {
 		return err
 	}
 	defer response.Body.Close()
-	searchParamsForUser(response.Body, u)
+	SearchParamsForUser(response.Body, u)
 	return nil
 }
 
@@ -79,7 +79,7 @@ func (u *UserRip) Rip() bool {
 	loginUrl, _ := url.Parse("https://mbasic.facebook.com/login/device-based/regular/login/")
 	parameters := u.GetParametersAsUrlValues()
 	request, _ := http.NewRequest("POST", loginUrl.String(), strings.NewReader(parameters.Encode()))
-	setHeaders(request, "application/x-www-form-urlencoded;", len(parameters.Encode()))
+	SetHeaders(request, "application/x-www-form-urlencoded;", len(parameters.Encode()))
 	u.Client.CheckRedirect = func(request *http.Request, via []*http.Request) error {
 		return http.ErrUseLastResponse
 	}
@@ -94,7 +94,7 @@ func (u *UserRip) Rip() bool {
 
 func (u *UserRip) GetRequest(requestUrl *url.URL) *http.Response {
 	request, _ := http.NewRequest("GET", requestUrl.String(), nil)
-	setHeaders(request, "", -1)
+	SetHeaders(request, "", -1)
 	response, _ := u.Client.Do(request)
 	return response
 }
@@ -128,7 +128,7 @@ func (u *UserRip) ValidCookies() bool {
 	return counter == 5
 }
 
-func setHeaders(request *http.Request, contentType string, paramsLength int) {
+func SetHeaders(request *http.Request, contentType string, paramsLength int) {
 	//Setting default headers
 	request.Header.Set("Host", request.URL.Host)
 	request.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0")

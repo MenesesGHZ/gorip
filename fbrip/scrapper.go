@@ -9,7 +9,7 @@ import (
 )
 
 // Finding user's parameters that are in input tags
-func searchParamsForUser(body io.Reader, u *UserRip) {
+func SearchParamsForUser(body io.Reader, u *UserRip) {
 	document, err := goquery.NewDocumentFromReader(body)
 	if err != nil {
 		panic("Error while reading utf-8 enconded HTML")
@@ -30,7 +30,7 @@ func searchParamsForUser(body io.Reader, u *UserRip) {
 
 // Searching path: 1*<div id="basic-info"> -> 6*<a>
 // (<a> contains href which helps to determine what type of info attribute we are dealing)
-func searchBasicInfo(body io.Reader) map[string]string {
+func SearchBasicInfo(body io.Reader) map[string]string {
 	document, err := goquery.NewDocumentFromReader(body)
 	if err != nil {
 		panic("Error while reading utf-8 enconded HTML")
@@ -57,7 +57,7 @@ func searchBasicInfo(body io.Reader) map[string]string {
 }
 
 // Looking for ActionBar where its patern path is: tbody > tr > td > a
-func getReactionsPickerUrl(body io.Reader) *url.URL {
+func GetReactionsPickerUrl(body io.Reader) *url.URL {
 	document, err := goquery.NewDocumentFromReader(body)
 	if err != nil {
 		panic("Error while reading utf-8 enconded HTML")
@@ -78,7 +78,7 @@ func getReactionsPickerUrl(body io.Reader) *url.URL {
 
 // Declaring Url & Converting `reactId` to integer
 // Looking for ActionBar where its patern path is: tbody > tr > td > a
-func getReactionUrl(body io.Reader, reactId string) *url.URL {
+func GetReactionUrl(body io.Reader, reactId string) *url.URL {
 	document, err := goquery.NewDocumentFromReader(body)
 	if err != nil {
 		panic("Error while reading utf-8 enconded HTML")
