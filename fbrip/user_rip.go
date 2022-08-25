@@ -39,18 +39,19 @@ func NewUserRip(email string, password string) *UserRip {
 	return userRip
 }
 
-//Getting first set of cookies and parameters needed for make a login request
-//Cookies Gathered:
-//	- datr				 (e.g. 'vhmkYoqy7RdEbjo_7-CfCB1A')
-//Parameters Gathered:
-//	- jazoest 			 (e.g. 2879)
-//  - li 	  			 (e.g 'vhmkYn8H32beqTnQp3ZeUcq3')
-//  - login				 (e.g 'Log in')
-//	- lsd 	  			 (e.g 'AVqG3uZN6UE')
-//  - m_ts    			 (e.g 1654921662)
-//	- try_number 		 (e.g 0)
-//	- unrecognized_tries (e.g 0)
-func (u *UserRip) sense() error {
+// Getting first set of cookies and parameters needed for make a login request
+// Cookies Gathered:
+//   - datr				 (e.g. 'vhmkYoqy7RdEbjo_7-CfCB1A')
+//
+// Parameters Gathered:
+//   - jazoest 			 (e.g. 2879)
+//   - li 	  			 (e.g 'vhmkYn8H32beqTnQp3ZeUcq3')
+//   - login				 (e.g 'Log in')
+//   - lsd 	  			 (e.g 'AVqG3uZN6UE')
+//   - m_ts    			 (e.g 1654921662)
+//   - try_number 		 (e.g 0)
+//   - unrecognized_tries (e.g 0)
+func (u *UserRip) Sense() error {
 	baseUrl, _ := url.Parse("https://mbasic.facebook.com/")
 	request, _ := http.NewRequest("GET", baseUrl.String(), nil)
 	setHeaders(request, "", -1)
@@ -63,15 +64,15 @@ func (u *UserRip) sense() error {
 	return nil
 }
 
-//Login workflow; Setting policy for handling redirects by returning `http.ErrUseLastResponse`
-//to avoid making next request automatically since is no needed for login.
-//Cookies Gathered (minus sense() cookies):
-//	- sb	 (e.g. 'mT-kYiYOVgO1REEuVoN3QIkt')
-//	- c_user (e.g. 100008137277101)
-//	- xs	 (e.g. '3%3AgAfz50LpTd4C6A%3A2%3A1654931354%3A-1%3A2298')
-//  - fr	 (e.g. '0z1tHKUHfVz6RQcyW.AWXxkBqxuktzL1QQzfdJ4Z_ZeQ4.BipD-a.pb.AAA.0.0.BipD-a.AWUAUnp-IxI')
+// Login workflow; Setting policy for handling redirects by returning `http.ErrUseLastResponse`
+// to avoid making next request automatically since is no needed for login.
+// Cookies Gathered (minus sense() cookies):
+//   - sb	 (e.g. 'mT-kYiYOVgO1REEuVoN3QIkt')
+//   - c_user (e.g. 100008137277101)
+//   - xs	 (e.g. '3%3AgAfz50LpTd4C6A%3A2%3A1654931354%3A-1%3A2298')
+//   - fr	 (e.g. '0z1tHKUHfVz6RQcyW.AWXxkBqxuktzL1QQzfdJ4Z_ZeQ4.BipD-a.pb.AAA.0.0.BipD-a.AWUAUnp-IxI')
 func (u *UserRip) Rip() bool {
-	err := u.sense()
+	err := u.Sense()
 	if err != nil {
 		return false
 	}
@@ -114,8 +115,8 @@ func (u *UserRip) GetParameterKeys() []string {
 	return keys
 }
 
-//Validates if the user has the necessary cookies to login.
-//Coockies = "datr", "sb", "c_user", "xs", "fr"
+// Validates if the user has the necessary cookies to login.
+// Coockies = "datr", "sb", "c_user", "xs", "fr"
 func (u *UserRip) ValidCookies() bool {
 	counter := 0
 	for _, cookie := range u.Client.Jar.Cookies(FacebookUrl) {

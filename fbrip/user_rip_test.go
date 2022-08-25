@@ -16,7 +16,7 @@ func TestSenseParameters(t *testing.T) {
 	assert.Equal(t, "", user.Parameters["try_number"])
 	assert.Equal(t, "", user.Parameters["unrecognized_tries"])
 	assert.Equal(t, "", user.Parameters["login"])
-	user.sense()
+	user.Sense()
 	assert.Equal(t, "fake_email", user.Parameters["email"])
 	assert.Equal(t, "fake_pass", user.Parameters["pass"])
 	assert.NotEqual(t, "", user.Parameters["lsd"])

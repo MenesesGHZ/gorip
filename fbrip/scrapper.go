@@ -29,7 +29,7 @@ func searchParamsForUser(body io.Reader, u *UserRip) {
 }
 
 // Searching path: 1*<div id="basic-info"> -> 6*<a>
-//(<a> contains href which helps to determine what type of info attribute we are dealing)
+// (<a> contains href which helps to determine what type of info attribute we are dealing)
 func searchBasicInfo(body io.Reader) map[string]string {
 	document, err := goquery.NewDocumentFromReader(body)
 	if err != nil {
